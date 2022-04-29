@@ -1,4 +1,8 @@
 -- upgrade --
+CREATE TABLE IF NOT EXISTS "datinginterestplace" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "title_interest" VARCHAR(255) NOT NULL
+);
 CREATE TABLE IF NOT EXISTS "hobbies" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "title_hobbie" VARCHAR(255) NOT NULL
@@ -19,7 +23,6 @@ CREATE TABLE IF NOT EXISTS "usermodel" (
     "address" TEXT,
     "moving_to_dubai" BOOL,
     "birthday" DATE,
-    "interest_place_companion" VARCHAR(255),
     "children_age" JSONB NOT NULL,
     "photo_path" TEXT
 );
@@ -28,6 +31,10 @@ CREATE TABLE IF NOT EXISTS "aerich" (
     "version" VARCHAR(255) NOT NULL,
     "app" VARCHAR(100) NOT NULL,
     "content" JSONB NOT NULL
+);
+CREATE TABLE IF NOT EXISTS "interest_place_user" (
+    "usermodel_id" INT NOT NULL REFERENCES "usermodel" ("id") ON DELETE CASCADE,
+    "datinginterestplace_id" INT NOT NULL REFERENCES "datinginterestplace" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "users_hobbies" (
     "usermodel_id" INT NOT NULL REFERENCES "usermodel" ("id") ON DELETE CASCADE,

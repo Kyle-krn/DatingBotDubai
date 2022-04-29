@@ -1,0 +1,1 @@
+from . import new_reg_user_handlers
