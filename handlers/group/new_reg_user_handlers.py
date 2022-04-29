@@ -6,6 +6,7 @@ from loader import dp
 from aiogram import types
 from test import calculation_2_user
 
+
 async def send_new_registration_in_chanel(user: models.UserModel):
     avatar = await user.avatar
     photo_types = ('jpeg', 'jpg', "webm", "png")
@@ -36,16 +37,19 @@ async def send_new_registration_in_chanel(user: models.UserModel):
     if user.children is None:
         text += "Not say\n"
     text += "<b>Age children</b> - "
-    text += ", ".join([i for i in user.children_age]) + "\n"
+    text += ", ".join([str(i) for i in user.children_age]) + "\n"
     text += f"<b>Marital status</b> - {user.marital_status}\n"
     text += "<b>Purp dating</b> - "
     text += ", ".join([i.title_purp for i in await user.purp_dating.all()]) + "\n"
     text += f"<b>Search radius</b> - {user.search_radius} km"
-    if avatar.file_type.lower() in photo_types:
-        await bot.send_photo(-1001732505124, photo=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
-    elif avatar.file_type.lower() in video_types:
-        await bot.send_video(-1001732505124, video=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
-        
+    if avatar:
+        if avatar.file_type.lower() in photo_types:
+            await bot.send_photo(-1001732505124, photo=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
+        elif avatar.file_type.lower() in video_types:
+            await bot.send_video(-1001732505124, video=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
+    else: 
+        await bot.send_photo(-1001732505124, photo="https://www.etexstore.com/wp-content/plugins/all-in-one-seo-pack/images/default-user-image.png", caption=text, reply_markup=await verification_keyboards(user.id))
+
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'verification')
 async def verification_user(call: types.CallbackQuery):
@@ -54,7 +58,10 @@ async def verification_user(call: types.CallbackQuery):
     user = await models.UserModel.get(id=user_id)
     user.verification = True
     await user.save()
+    await call.answer("Одобренно")
+    await call.message.edit_reply_markup(reply_markup=None)
     await calculation_new_user(user)
+
 
 async def calculation_new_user(user: models.UserModel):
     verification_user_list = await models.UserModel.filter(verification=True).exclude(id=user.id)
@@ -84,8 +91,9 @@ async def calculation_new_user(user: models.UserModel):
                                           interest_place_6=interest_place_6, 
                                           year_now=year_now,
                                           old_user=old_user)
-
+        print(f"User {user.tg_username} -> User {target_user.tg_username} = {percent}%")
         relation = await models.UsersRelations.create(user=user, target_user=target_user, percent_compatibility=percent)
         if percent > 0:
             await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
             await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
+    print('\n')

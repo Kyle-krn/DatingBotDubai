@@ -40,6 +40,9 @@ class UserModel(Model):
     verification: bool = fields.BooleanField(default=False)
     ban: bool = fields.BooleanField(default=False)
 
+
+    user_view: fields.ReverseRelation["UserView"]
+
     def __str__(self):
         return f"User #{self.id}: {self.tg_username}"
 
@@ -65,6 +68,18 @@ class UserView(Model):
     relation: fields.ForeignKeyRelation["UsersRelations"] = fields.ForeignKeyField(
         "models.UsersRelations", related_name="relation_view")
     count_view: int = fields.IntField(default=0)
+
+    like: bool = fields.BooleanField(default=False)
+    superlike: bool = fields.BooleanField(default=False)
+
+
+
+class MutualLike(Model):
+    id: int = fields.IntField(pk=True)
+    user: fields.ForeignKeyRelation[UserModel] = fields.ForeignKeyField(
+        "models.UserModel", related_name="mutal_like")
+    target_user: fields.ForeignKeyRelation[UserModel] = fields.ForeignKeyField(
+        "models.UserModel", related_name="target_mutal_like")
 
 
 

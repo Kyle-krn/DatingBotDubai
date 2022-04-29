@@ -72,7 +72,8 @@ async def calculation_2_user(user: models.UserModel,
     distance = geodesic((user.lat, user.long), (target_user.lat, target_user.long)).km
     target_interest_place = await target_user.interest_place_companion.all()
     if distance > allow_distance:
-        if (user.dubai and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 not in interest_place_user) and (target_user.moving_to_dubai):
+        if (user.dubai and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 not in interest_place_user) and  \
+           (target_user.moving_to_dubai):
             '''1,4,5                            1,4; 1,4,5; 1,4,5,6 ; 1,4,6; 2,4; 2,4,5; 2,4,5,6 ; 2,4,6 '''
             pass
         elif (user.dubai and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 in interest_place_user):
@@ -272,4 +273,4 @@ async def test_q():
     print('\n')
     print(f"Процент совместимости -> {percent}%")
 
-run_async(test_q())
+# run_async(test_q())

@@ -2,5 +2,6 @@
 from . import users
 from . import calculation_relations
 from . import group
+from . import dating
 # from . import channel
 

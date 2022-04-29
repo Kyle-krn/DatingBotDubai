@@ -25,8 +25,18 @@ class ProfileSettingsState(StatesGroup):
 @dp.message_handler(commands=['user'])
 async def test_group(message: types.Message):
     # user = await UserModel.get_or_none(id=49)
-    user = await UserModel.get_or_none(id=58)
-    await send_new_registration_in_chanel(user)
+    # user = await UserModel.get_or_none(id=58)
+    for user in await UserModel.all():
+        await send_new_registration_in_chanel(user)
+
+
+@dp.message_handler(commands=['test'])
+async def test_group(message: types.Message):
+    user = await UserModel.get_or_none(id=44)
+    print(await user.user_view.filter(relation__percent_compatibility__gt=0))
+    # user = await UserModel.get_or_none(id=58)
+    # for user in await UserModel.all():
+    #     await send_new_registration_in_chanel(user)
 
 @dp.message_handler(CommandStart())
 async def bot_start(message: types.Message):
@@ -329,8 +339,10 @@ async def back_send_document_handler(call: types.CallbackQuery):
 
 
 @dp.message_handler(content_types=['document', 'photo', 'video'], state=ProfileSettingsState.avatar)
+# @dp.message_handler(content_types=['document', 'photo', 'video'])
 async def upload_file_handler(message: types.Message, state: FSMContext):
     user = await UserModel.get(tg_id=message.chat.id)
+    # user = await UserModel.get(id=53)
     # print(await user.avatar.delete())
     if await user.avatar:
         await user.avatar.delete()
@@ -383,6 +395,7 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
     user.avatar = avatar
     await user.save()
     await state.finish()
+    await send_new_registration_in_chanel(user)
     await message.answer("Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации.")
 
 
@@ -390,6 +403,7 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'skip_ava', state=ProfileSettingsState.avatar)
 async def skip_ava_handler(call: types.CallbackQuery, state: FSMContext):
     await state.finish()
+    # await send_new_registration_in_chanel()
     await call.message.edit_text("Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации.")
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'how_upload_document', state=ProfileSettingsState.avatar)
