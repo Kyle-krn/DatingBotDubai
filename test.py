@@ -67,86 +67,95 @@ async def calculation_2_user(user: models.UserModel,
                              year_now: int,
                              old_user: int) -> int:
     percent = 0
-
+    ipu = interest_place_user
+    ip4 = interest_place_4
+    ip5 = interest_place_5
+    ip6 = interest_place_6
     allow_distance = user.search_radius if user.search_radius < target_user.search_radius else target_user.search_radius
     distance = geodesic((user.lat, user.long), (target_user.lat, target_user.long)).km
-    target_interest_place = await target_user.interest_place_companion.all()
+    tip = await target_user.interest_place_companion.all()
     if distance > allow_distance:
-        if (user.dubai and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 not in interest_place_user) and  \
-           (target_user.moving_to_dubai):
+
+        condition_1 = (ip4 in tip and ip5 not in tip and ip6 not in tip) or \
+                      (ip4 in tip and ip5 in tip and ip6 not in tip) or \
+                      (ip4 in tip and ip5 in tip and ip6 in tip) or \
+                      (ip4 in tip and ip5 not in tip and ip6 in tip)
+
+        condition_2 = (ip4 not in tip and ip5 in tip and ip6 not in tip) or \
+                      (ip4 in tip and ip5 in tip and ip6 not in tip) or \
+                      (ip4 in tip and ip5 in tip and ip6 in tip) or \
+                      (ip4 not in tip and ip5 in tip and ip6 in tip)
+
+        condition_3 = (ip4 not in tip and ip5 not in tip and ip6 in tip) or \
+                      (ip4 in tip and ip5 not in tip and ip6 in tip) or \
+                      (ip4 in tip and ip5 in tip and ip6 in tip) or \
+                      (ip4 not in tip and ip5 in tip and ip6 in tip)
+
+        tar_place_1_and_2 = target_user.dubai or target_user.moving_to_dubai
+        tar_place_1_and_3 = target_user.moving_to_dubai is False
+        tar_place_2 = target_user.dubai is False and target_user.moving_to_dubai
+        tar_place_2_and_3 = target_user.dubai is False
+        tar_place_3 = target_user.dubai is False and target_user.moving_to_dubai is False
+        tar_place_1 = target_user.dubai is True
+
+        if (user.dubai and ip4 in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_1_and_2 and condition_1):
             '''1,4,5                            1,4; 1,4,5; 1,4,5,6 ; 1,4,6; 2,4; 2,4,5; 2,4,5,6 ; 2,4,6 '''
             pass
-        elif (user.dubai and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 in interest_place_user):
+        elif (user.dubai and ip4 in ipu and ip5 in ipu and ip6 in ipu) and (condition_1):
             '''1,4,5,6                         1,4; 1,4,5; 1,4,5,6 ; 1,4,6; 2,4; 2,4,5; 2,4,5,6 ; 2,4,6; 3,4; 3,4,5; 3,4,5,6 ; 3,4,6;'''
             pass
-        elif (user.dubai and interest_place_4 in interest_place_user and interest_place_5 not in interest_place_user and interest_place_6 in interest_place_user) and \
-             (target_user.moving_to_dubai is False):
+        elif (user.dubai and ip4 in ipu and ip5 not in ipu and ip6 in ipu) and (tar_place_1_and_3 and condition_1):
             '''1,4,6                            1,4; 1,4,5; 1,4,5,6 ; 1,4,6; 3,4; 3,4,5; 3,4,5,6 ; 3,4,6;'''
             pass
-        elif (user.dubai and interest_place_4 not in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 not in interest_place_user) and \
-             (target_user.moving_to_dubai and target_user.dubai is False):
+        elif (user.dubai and ip4 not in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_2 and condition_1):
             '''1,5                               2,4; 2,4,5; 2,4,5,6 ; 2,4,6'''
             pass
-        elif (user.dubai and interest_place_4 not in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 in interest_place_user) and \
-             (target_user.dubai is False):
+        elif (user.dubai and ip4 not in ipu and ip5 in ipu and ip6 in ipu) and (tar_place_2_and_3 and condition_1):
             '''1,5,6                            2,4; 2,4,5; 2,4,5,6 ; 2,4,6; 3,4; 3,4,5; 3,4,5,6 ; 3,4,6;'''
             pass
-        elif (user.dubai and interest_place_4 not in interest_place_user and interest_place_5 not in interest_place_user and interest_place_6 in interest_place_user) and \
-             (target_user.dubai is False and target_user.moving_to_dubai is False):
+        elif (user.dubai and ip4 not in ipu and ip5 not in ipu and ip6 in ipu) and (tar_place_3 and condition_1):
             '''1,6                               3,4; 3,4,5; 3,4,5,6 ; 3,4,6;'''
             pass 
-        elif (user.dubai is False and user.moving_to_dubai is True and interest_place_4 in interest_place_user and interest_place_5 not in interest_place_user and interest_place_6 not in interest_place_user) and \
-             (target_user.dubai is True):
+        elif (user.dubai is False and user.moving_to_dubai is True and ip4 in ipu and ip5 not in ipu and ip6 not in ipu) and (tar_place_1 and condition_2):
             '''2,4                               1,5; 1,4,5; 1,4,5,6 ; 1,5,6'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is True and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 not in interest_place_user) and  \
-             ((target_user.dubai is True) or (target_user.dubai is False and target_user.moving_to_dubai is True)):
+        elif (user.dubai is False and user.moving_to_dubai is True and ip4 in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_1_and_2 and condition_2):
             '''2,4,5                            1,5; 1,4,5; 1,4,5,6 ; 1,5,6; 2,5; 2,4,5; 2,4,5,6 ; 2,5,6;'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is True and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 in interest_place_user):
+        elif (user.dubai is False and user.moving_to_dubai is True and ip4 in ipu and ip5 in ipu and ip6 in ipu) and condition_2:
             '''2,4,5,6                         1,5; 1,4,5; 1,4,5,6 ; 1,5,6; 2,5; 2,4,5; 2,4,5,6 ; 2,5,6; 3,5; 3,4,5; 3,4,5,6 ; 3,5,6;'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is True and interest_place_4 in interest_place_user and interest_place_5 not in interest_place_user and interest_place_6 in interest_place_user) and \
-             ((target_user.dubai is True) or (target_user.dubai is False and target_user.moving_to_dubai is True)):
+        elif (user.dubai is False and user.moving_to_dubai is True and ip4 in ipu and ip5 not in ipu and ip6 in ipu) and (tar_place_1_and_3 and condition_2):
             '''2,4,6                           1,5; 1,4,5; 1,4,5,6 ; 1,5,6; 3,5; 3,4,5; 3,4,5,6 ; 3,5,6;'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is True and interest_place_4 not in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 not in interest_place_user) and  \
-             (target_user.dubai is False and target_user.moving_to_dubai is True):
+        elif (user.dubai is False and user.moving_to_dubai is True and ip4 not in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_2 and condition_2):
             '''2,5                              2,5; 2,4,5; 2,4,5,6 ; 2,5,6'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is True and interest_place_4 not in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 in interest_place_user) and  \
-             (target_user.dubai is False):
+        elif (user.dubai is False and user.moving_to_dubai is True and ip4 not in ipu and ip5 in ipu and ip6 in ipu) and (tar_place_2_and_3 and condition_2):
             '''2,5,6                           2,5; 2,4,5; 2,4,5,6 ; 2,5,6; 3,5; 3,4,5; 3,4,5,6 ; 3,5,6;'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is True and interest_place_4 not in interest_place_user and interest_place_5 not in interest_place_user and interest_place_6 in interest_place_user) and  \
-             (target_user.dubai is False and target_user.moving_to_dubai is False):
+        elif (user.dubai is False and user.moving_to_dubai is True and ip4 not in ipu and ip5 not in ipu and ip6 in ipu) and (tar_place_3 and condition_2):
             '''2,6                              3,5; 3,4,5; 3,4,5,6 ; 3,5,6'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is False and interest_place_4 in interest_place_user and interest_place_5 not in interest_place_user and interest_place_6 not in interest_place_user) and  \
-             (target_user.dubai is True):
+        elif (user.dubai is False and user.moving_to_dubai is False and ip4 in ipu and ip5 not in ipu and ip6 not in ipu) and (tar_place_1 and condition_3):
             '''3,4                              1,6; 1,4,6; 1,4,5,6 ; 1,5,6'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is False and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 not in interest_place_user) and \
-             (target_user.dubai is True or target_user.moving_to_dubai is True):
+        elif (user.dubai is False and user.moving_to_dubai is False and ip4 in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_1_and_2 and condition_3):
             '''3,4,5                           1,6; 1,4,6; 1,4,5,6 ; 1,5,6; 2,6; 2,4,6; 2,4,5,6 ; 2,5,6;'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is False and interest_place_4 in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 in interest_place_user):
+        elif (user.dubai is False and user.moving_to_dubai is False and ip4 in ipu and ip5 in ipu and ip6 in ipu) and condition_3:
             '''3,4,5,6                        1,6; 1,4,6; 1,4,5,6 ; 1,5,6; 2,6; 2,4,6; 2,4,5,6 ; 2,5,6; 3,6; 3,4,6; 3,4,5,6 ; 3,5,6; '''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is False and interest_place_4 in interest_place_user and interest_place_5 not in interest_place_user and interest_place_6 in interest_place_user) and \
-             ((target_user.dubai is True) or (target_user.moving_to_dubai is False and target_user.moving_to_dubai is False)):
+        elif (user.dubai is False and user.moving_to_dubai is False and ip4 in ipu and ip5 not in ipu and ip6 in ipu) and (tar_place_1_and_3 and condition_3):
             '''3,4,6                           1,6; 1,4,6; 1,4,5,6 ; 1,5,6; 3,6; 3,4,6; 3,4,5,6 ; 3,5,6;'''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is False and interest_place_4 not in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 not in interest_place_user) and \
-             (target_user.moving_to_dubai is True):
+        elif (user.dubai is False and user.moving_to_dubai is False and ip4 not in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_2 and condition_3):
             '''3,5                              2,6; 2,4,6; 2,4,5,6 ; 2,5,6; '''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is False and interest_place_4 not in interest_place_user and interest_place_5 in interest_place_user and interest_place_6 in interest_place_user) and \
-             (target_user.dubai is False):
+        elif (user.dubai is False and user.moving_to_dubai is False and ip4 not in ipu and ip5 in ipu and ip6 in ipu) and (tar_place_2_and_3 and condition_3):
             '''3,5,6                           2,6; 2,4,6; 2,4,5,6 ; 2,5,6; 3,6; 3,4,6; 3,4,5,6 ; 3,5,6;  '''
             pass
-        elif (user.dubai is False and user.moving_to_dubai is False and interest_place_4 not in interest_place_user and interest_place_5 not in interest_place_user and interest_place_6 in interest_place_user) and \
-             (target_user.dubai is False and target_user.moving_to_dubai is False): 
+        elif (user.dubai is False and user.moving_to_dubai is False and ip4 not in ipu and ip5 not in ipu and ip6 in ipu) and (tar_place_3 and condition_3): 
             '''3,6                              3,6; 3,4,6; 3,4,5,6 ; 3,5,6;'''
             pass
         else:

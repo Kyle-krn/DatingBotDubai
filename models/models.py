@@ -37,6 +37,8 @@ class UserModel(Model):
     )
     search_radius: int = fields.IntField(default=200)
 
+    superlike_count: int = fields.IntField(default=1)
+
     verification: bool = fields.BooleanField(default=False)
     ban: bool = fields.BooleanField(default=False)
 
@@ -71,6 +73,7 @@ class UserView(Model):
 
     like: bool = fields.BooleanField(default=False)
     superlike: bool = fields.BooleanField(default=False)
+    dislike: bool = fields.BooleanField(default=False)
 
 
 
