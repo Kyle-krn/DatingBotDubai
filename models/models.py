@@ -1,5 +1,6 @@
 from decimal import Decimal
 from datetime import datetime
+from email.policy import default
 from tortoise import Model, fields
 
 
@@ -32,16 +33,16 @@ class UserModel(Model):
         "models.PurposeOfDating", related_name="users", through="users_purp"
     )
 
-    avatar: fields.OneToOneRelation["AvatarModel"] = fields.OneToOneField(
-        "models.AvatarModel", related_name="user", null=True, on_delete="SET NULL"
-    )
+    # avatar: fields.OneToOneRelation["AvatarModel"] = fields.OneToOneField(
+    #     "models.AvatarModel", related_name="user", null=True, on_delete="SET NULL"
+    # )
+    avatar: fields.OneToOneRelation["AvatarModel"]
     search_radius: int = fields.IntField(default=7000)
 
     superlike_count: int = fields.IntField(default=1)
 
     verification: bool = fields.BooleanField(default=False)
     ban: bool = fields.BooleanField(default=False)
-
 
     user_view: fields.ReverseRelation["UserView"]
 
@@ -59,6 +60,11 @@ class UsersRelations(Model):
         "models.UserModel", related_name="target_user_relation"
     )
     percent_compatibility: int = fields.IntField()
+    
+    percent_age: int = fields.IntField()
+    percent_children: int = fields.IntField()
+    percent_hobbies: int = fields.IntField()
+
 
 
 class UserView(Model):
@@ -94,7 +100,8 @@ class AvatarModel(Model):
     file_path: str = fields.CharField(max_length=255)
     file_type: str = fields.CharField(max_length=40)
     photo_bool: bool = fields.BooleanField()
-    user: fields.OneToOneRelation[UserModel]
+    user: fields.OneToOneRelation[UserModel] = fields.OneToOneField("models.UserModel", related_name="avatar")
+    # user: fields.OneToOneRelation[UserModel]
 
 
 class DatingInterestPlace(Model):

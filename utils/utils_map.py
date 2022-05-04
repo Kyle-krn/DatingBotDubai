@@ -46,13 +46,4 @@ async def get_location_by_lat_long(lat: float, long: float):
 
 
 
-        
-# x, geo, tmz = asyncio.run(get_location_by_city("Дубаи"))
-# x, geo, tmz = asyncio.run(get_location_by_lat_long(55.2962, 25.2684))
-# print(geo)
-# tz = timezone('America/New_York')
-# x = int(tz.utcoffset(datetime.now()).total_seconds() / 60 / 60)
-# print(x)
-# x = asyncio.run(get_location_by_city("Dubai"))
-# print(x)
-# print(date.today())
+    

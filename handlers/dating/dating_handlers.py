@@ -13,6 +13,7 @@ import tortoise
 r = redis.Redis()
 
 @dp.message_handler(commands=['dating'])
+@dp.message_handler(regexp="^(👥 Найти пару)$")
 async def search_dating(message: types.Message, last_view_id: int = None):
     photo_types = ('jpeg', 'jpg', "webm", "png")
     video_types = ("mp4", "avi")
@@ -105,7 +106,6 @@ async def reaction_ad_handler(call: types.CallbackQuery):
 
     elif command == "dislike":
         view.dislike = True
-        await bot.send_message(chat_id=target_user.tg_id, text=f"У вас новая пара с @{user.tg_username}!")
     await view.save()
     await call.message.delete()
     if call.data.split(':')[0] == 'reaction':

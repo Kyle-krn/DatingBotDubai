@@ -54,19 +54,13 @@ async def create_relation(user: models.UserModel, target_user: models.UserModel,
 # 3 - Не в дубае и не планирует туда переезд                        6
 
 
-async def calculation_2_user(user: models.UserModel, 
-                             target_user: models.UserModel,
-                             purp_friend: models.PurposeOfDating,
-                             purp_sex: models.PurposeOfDating,
-                             purp_user: List[models.PurposeOfDating],
-                             hobbies_user: List[models.Hobbies],
-                             interest_place_user: List[models.DatingInterestPlace],
-                             interest_place_4: models.DatingInterestPlace, 
-                             interest_place_5: models.DatingInterestPlace, 
-                             interest_place_6: models.DatingInterestPlace, 
-                             year_now: int,
-                             old_user: int) -> int:
-    percent = 0
+async def check_distance(user: models.UserModel, 
+                         target_user: models.UserModel,
+                         interest_place_user: List[models.DatingInterestPlace],
+                         interest_place_4: models.DatingInterestPlace, 
+                         interest_place_5: models.DatingInterestPlace, 
+                         interest_place_6: models.DatingInterestPlace, ):
+
     ipu = interest_place_user
     ip4 = interest_place_4
     ip5 = interest_place_5
@@ -161,9 +155,12 @@ async def calculation_2_user(user: models.UserModel,
             pass
         else:
             return 0
-    
-    
 
+async def check_purp(user: models.UserModel, 
+                     target_user: models.UserModel,
+                     purp_friend: models.PurposeOfDating,
+                     purp_sex: models.PurposeOfDating,
+                     purp_user: List[models.PurposeOfDating]):
     purp_target_user = await target_user.purp_dating.all()
     count_purp = 0
     for item in purp_target_user:
@@ -177,31 +174,90 @@ async def calculation_2_user(user: models.UserModel,
                если пол одинаковый то процент схожести интересов становится 0'''
             # print(f'Несовместимость по цели знакомства (Цель секс совпадает, дружба нет и одинаковый пол) {user} -> {target_user}')
             return 0
-    
-    percent += 30 # 30 процентов за прошлые пункты
 
-    percent += 20 # 20 сразу накидываем за возраст
+
+async def check_age(old_user: int,
+                    target_user: models.UserModel):
+    percent_age = 20 # 20 сразу накидываем за возраст
+    year_now = datetime.now().year
     difference = abs(old_user - (year_now-target_user.birthday.year))
-    percent -= difference * 2 # Вычисляем разницу возраста и отнимаем ее 
-    
+    return percent_age - difference * 2 # Вычисляем разницу возраста и отнимаем ее 
+
+
+async def check_children(user: models.UserModel,
+                         target_user: models.UserModel):
+    percent_children = 0
     if user.children and target_user.children:
         '''Накидываем проценты за детей'''
-        percent += 20
+        percent_children += 20
         for user_children in user.children_age:
             for target_user_children in target_user.children_age:
                 difference_age_children = abs(user_children-target_user_children)
                 if difference_age_children <= 2:
-                    percent += 10 # Накидываем проценты за возраст детей
-        
-    # print(len)
+                    percent_children += 10 # Накидываем проценты за возраст детей
+    return percent_children
+
+
+async def check_hobbies(target_user: models.UserModel,
+                        hobbies_user: List[models.Hobbies]):
+    percent_hobbies = 0
     for target_hobbie in await target_user.hobbies.all():
         if target_hobbie in hobbies_user:
-            percent += 10
+            percent_hobbies += 10
+    return percent_hobbies
+
+async def calculation_2_user(user: models.UserModel, 
+                             target_user: models.UserModel,
+                             purp_friend: models.PurposeOfDating,
+                             purp_sex: models.PurposeOfDating,
+                             purp_user: List[models.PurposeOfDating],
+                             hobbies_user: List[models.Hobbies],
+                             interest_place_user: List[models.DatingInterestPlace],
+                             interest_place_4: models.DatingInterestPlace, 
+                             interest_place_5: models.DatingInterestPlace, 
+                             interest_place_6: models.DatingInterestPlace, 
+                            #  year_now: int,
+                             old_user: int) -> int:
+    percent = 0
     
-    if percent >= 100:
-        percent = 99
+    result_distance_check = await check_distance(user=user, 
+                                                 target_user=target_user,
+                                                 interest_place_user=interest_place_user,
+                                                 interest_place_4=interest_place_4,
+                                                 interest_place_5=interest_place_5,
+                                                 interest_place_6=interest_place_6)
+    if result_distance_check:
+        return 0, 0, 0, 0
+
+    result_purp_check = await check_purp(user=user,
+                                         target_user=target_user,
+                                         purp_friend=purp_friend,
+                                         purp_sex=purp_sex,
+                                         purp_user=purp_user)
+    if result_purp_check:
+        return 0, 0, 0, 0
     
-    return percent
+    
+    percent += 30 # 30 процентов за прошлые пункты
+    
+    
+    percent_age = await check_age(old_user=old_user,
+                                  target_user=target_user)
+    percent += percent_age
+
+
+    percent_children = await check_children(user=user,
+                                            target_user=target_user)
+    percent += percent_children
+
+
+    percent_hobbies = await check_hobbies(target_user=target_user,
+                                          hobbies_user=hobbies_user)
+    percent += percent_hobbies
+    # if percent >= 100:
+    #     percent = 99
+    
+    return percent, percent_age, percent_children, percent_hobbies
 
 # Дубаи                                                             1
 # не Дубаи (планирую переезд)                                       2

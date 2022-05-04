@@ -2,6 +2,14 @@ import re
 from aiogram import types
 from tortoise import List
 from models.models import DatingInterestPlace, Hobbies, UserModel, PurposeOfDating
+
+
+async def main_profile_keyboard():
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton(text='📷 Фото',callback_data='change_ava:'), 
+                 types.InlineKeyboardButton(text='Увлечения',callback_data='change_hobbies:'))
+    return keyboard
+
 async def gender_keyboard():
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(types.InlineKeyboardButton(text='♂️ Мужчина',callback_data='gender:male'), 
@@ -47,8 +55,8 @@ async def remove_hobbie_keyboard(hobbies_list: List[Hobbies]):
     keyboard = types.InlineKeyboardMarkup()
     for hobbie in hobbies_list:
         keyboard.add(types.InlineKeyboardButton(text=hobbie.title_hobbie, callback_data=f"remove_hobbie:{hobbie.id}"))
-    keyboard.add(types.InlineKeyboardButton(text="Добавить увлечения", callback_data=f"add_hobbie:"))
-    keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=f"marriage:"))
+    keyboard.add(types.InlineKeyboardButton(text="Добавить увлечения", callback_data=f"skip_hobbie:"))
+    # keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=f"skip_hobbie:"))
     return keyboard
 
 
@@ -96,3 +104,5 @@ async def back_document_keyboard():
     # keyboard.add(types.InlineKeyboardButton(text="ℹ️ Как загрузить фото без потери качества?", callback_data="how_upload_document:"))
     keyboard.add(types.InlineKeyboardButton(text="Назад", callback_data="back_send_ava:"))
     return keyboard
+
+

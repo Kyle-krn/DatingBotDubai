@@ -16,6 +16,7 @@ from utils.zodiak import zodiac_sign
 r = redis.Redis(db=1)
 
 @dp.message_handler(commands=['likes'])
+@dp.message_handler(regexp="^(💑 Симпатии)$")
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'back_likes')
 async def view_relations_handler(message: types.Message):
     text = '<b>"Тебя лайкнули"</b> - когда пользователи видят твою анкету ' \
@@ -103,7 +104,6 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "mutal_likes")
 async def mutal_likes_handler(call: types.CallbackQuery):
-    print(call.data)
     user = await models.UserModel.get(tg_id=call.message.chat.id)
     offset = int(call.data.split(':')[1])
     count_mutal_like = await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).count()
