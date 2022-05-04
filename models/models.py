@@ -1,5 +1,5 @@
 from decimal import Decimal
-from email.policy import default
+from datetime import datetime
 from tortoise import Model, fields
 
 
@@ -35,7 +35,7 @@ class UserModel(Model):
     avatar: fields.OneToOneRelation["AvatarModel"] = fields.OneToOneField(
         "models.AvatarModel", related_name="user", null=True, on_delete="SET NULL"
     )
-    search_radius: int = fields.IntField(default=200)
+    search_radius: int = fields.IntField(default=7000)
 
     superlike_count: int = fields.IntField(default=1)
 
@@ -83,6 +83,7 @@ class MutualLike(Model):
         "models.UserModel", related_name="mutal_like")
     target_user: fields.ForeignKeyRelation[UserModel] = fields.ForeignKeyField(
         "models.UserModel", related_name="target_mutal_like")
+    created_at: datetime = fields.DatetimeField(auto_now_add=True)
 
 
 

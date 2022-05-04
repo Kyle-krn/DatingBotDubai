@@ -7,19 +7,13 @@ from loader import dp
 from keyboards.inline.user_settings_keyboards import (gender_keyboard, city_answer_keyboard, dubai_answer_keyboard, companion_dubai_keyboard, skip_settings_keyboard,
                                                      remove_hobbie_keyboard, marital_status_keyboard, children_keyboard, purp_keyboard, avatar_keyboard, back_document_keyboard)
 from keyboards.reply_keyboards.keyboards import geolocation_keyboard
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from utils.utils_map import get_location_by_city, get_location_by_lat_long
 from aiogram.dispatcher import FSMContext
 import os
-
+from .profile_state import ProfileSettingsState
 from handlers.group.new_reg_user_handlers import send_new_registration_in_chanel
 
-class ProfileSettingsState(StatesGroup):
-    city = State()
-    bday = State()
-    hobbies = State()
-    children = State()
-    avatar = State()
+
 
 
 @dp.message_handler(commands=['user'])
@@ -52,20 +46,7 @@ async def bot_start(message: types.Message):
         await message.answer(f"Укажите Ваш пол:", reply_markup=await gender_keyboard())
 
 
-@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'gender')
-async def gender_handler(call: types.CallbackQuery):
-    user = await UserModel.get(tg_id=call.message.chat.id)
-    gender = call.data.split(':')[1]
-    if gender == 'male':
-        user.male = True
-        await call.answer("Вы выбрали: Мужчина")
-    else:
-        user.male = False
-        await call.answer("Вы выбрали: Женщина")
-    await user.save()
-    await call.message.delete()
-    await ProfileSettingsState.city.set()
-    await call.message.answer(text="Введите ваш город", reply_markup=await geolocation_keyboard())
+
 
 
 @dp.message_handler(state=ProfileSettingsState.city)

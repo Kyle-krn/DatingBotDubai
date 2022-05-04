@@ -1,5 +1,5 @@
 from datetime import datetime
-from keyboards.inline.group_keyboards import verification_keyboards
+from keyboards.inline.inline_keyboards import verification_keyboards
 from models import models
 from loader import bot
 from loader import dp

@@ -74,8 +74,8 @@ async def calculation_2_user(user: models.UserModel,
     allow_distance = user.search_radius if user.search_radius < target_user.search_radius else target_user.search_radius
     distance = geodesic((user.lat, user.long), (target_user.lat, target_user.long)).km
     tip = await target_user.interest_place_companion.all()
-    if distance > allow_distance:
 
+    if int(distance) > allow_distance:
         condition_1 = (ip4 in tip and ip5 not in tip and ip6 not in tip) or \
                       (ip4 in tip and ip5 in tip and ip6 not in tip) or \
                       (ip4 in tip and ip5 in tip and ip6 in tip) or \
@@ -97,6 +97,7 @@ async def calculation_2_user(user: models.UserModel,
         tar_place_2_and_3 = target_user.dubai is False
         tar_place_3 = target_user.dubai is False and target_user.moving_to_dubai is False
         tar_place_1 = target_user.dubai is True
+
 
         if (user.dubai and ip4 in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_1_and_2 and condition_1):
             '''1,4,5                            1,4; 1,4,5; 1,4,5,6 ; 1,4,6; 2,4; 2,4,5; 2,4,5,6 ; 2,4,6 '''
@@ -161,6 +162,8 @@ async def calculation_2_user(user: models.UserModel,
         else:
             return 0
     
+    
+
     purp_target_user = await target_user.purp_dating.all()
     count_purp = 0
     for item in purp_target_user:
@@ -169,19 +172,15 @@ async def calculation_2_user(user: models.UserModel,
     if count_purp == 0:
         # print(f'Несовместимость по цели знакомства {user} -> {target_user}')
         return 0
-
-    
-    if (purp_sex in purp_user and purp_sex in purp_target_user) and (purp_friend not in purp_user or purp_friend not in purp_target_user):
+    if ((purp_sex in purp_user and purp_sex in purp_user) and (purp_friend not in purp_user or purp_friend not in purp_target_user)) and user.male == target_user.male:
             '''Если у пользователей сходится цель знакомства - отношения, но не сходится дружба, то проверяется их пол, 
                если пол одинаковый то процент схожести интересов становится 0'''
-    if user.male == target_user.male:
-        # print(f'Несовместимость по цели знакомства (Цель секс совпадает, дружба нет и одинаковый пол) {user} -> {target_user}')
-        return 0
-
+            # print(f'Несовместимость по цели знакомства (Цель секс совпадает, дружба нет и одинаковый пол) {user} -> {target_user}')
+            return 0
+    
     percent += 30 # 30 процентов за прошлые пункты
 
     percent += 20 # 20 сразу накидываем за возраст
-
     difference = abs(old_user - (year_now-target_user.birthday.year))
     percent -= difference * 2 # Вычисляем разницу возраста и отнимаем ее 
     
@@ -217,8 +216,8 @@ async def calculation_2_user(user: models.UserModel,
 
 async def test_q():
     await Tortoise.init(TORTOISE_ORM)
-    user = await models.UserModel.get(id=46)
-    marr = await models.UserModel.get(id=49)
+    user = await models.UserModel.get(id=66)
+    marr = await models.UserModel.get(id=78)
 
     purp_friend = await models.PurposeOfDating.get(id=1)
     purp_sex = await models.PurposeOfDating.get(id=2)

@@ -1,0 +1,158 @@
+from ctypes import Union
+from datetime import datetime
+from typing import Any, List
+from loader import dp
+from aiogram import types
+from models import models
+from keyboards.inline.inline_keyboards import view_relation_keyboard
+from tortoise.queryset import Q
+from keyboards.inline.inline_keyboards import like_keyboard, mutal_likes_keyboard
+
+import redis
+import json
+
+from utils.zodiak import zodiac_sign
+
+r = redis.Redis(db=1)
+
+@dp.message_handler(commands=['likes'])
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'back_likes')
+async def view_relations_handler(message: types.Message):
+    text = '<b>"Тебя лайкнули"</b> - когда пользователи видят твою анкету ' \
+           'и нажимают лайк, они попадают в эту вкладку.\n\n' \
+           '<b>"Взаимные лайки"</b> - когда пользователь поставил лайк тебе, ' \
+           'а ты поставил лайк ему, у вас образуется взаимный лайк. ' \
+           'К взаимным лайкам всегда можно перейти через эту вкладку. ' \
+           'Мы отправим твой контакт в случае взаимного лайка 💑\n\n' \
+           'Проверь, заполнено ли поле Username в настройках профиля ' \
+           'Telegram или добавь @zodier_bot в исключения. Для этого пройди ' \
+           'в меню настройки пересылки сообщений для Telegram: ' \
+           '<b>Настройки -> Конфиденциальность -> Пересылка сообщений.</b>'
+    if isinstance(message, types.CallbackQuery):
+        tg_id = message.message.chat.id
+    else:
+        tg_id = message.chat.id
+    user = await models.UserModel.get(tg_id=tg_id)
+    count_your_like = await models.UserView.filter(Q(target_user=user) & Q(like=True)).count()
+    count_mutal_like = await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).count()
+    count_your_like = count_your_like - count_mutal_like
+    if isinstance(message, types.CallbackQuery):
+        await message.message.delete()
+        return await message.message.answer(text, reply_markup=await view_relation_keyboard(count_your_like=count_your_like, count_mutal_like=count_mutal_like))
+    else:
+        return await message.answer(text, reply_markup=await view_relation_keyboard(count_your_like=count_your_like, count_mutal_like=count_mutal_like))
+
+
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == "your_likes")
+async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int = None):
+    user = await models.UserModel.get(tg_id=call.message.chat.id)
+    queryset_cache = r.get(str(call.message.chat.id))
+    if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
+        user_views = []
+        query = Q(target_user=user) & Q(like=True)
+        targets_like_views = models.UserView.filter(query).order_by('dislike', 'count_view', '-relation__percent_compatibility')
+        for target_view in await targets_like_views:
+            user_view = await models.UserView.get(Q(user=user) & Q(target_user_id=target_view.user_id))
+            if not user_view.like:
+                user_views.append(user_view)
+        if len(user_views) == 0:
+            return await call.answer("Вас никто не лайкнул.")
+        user_view: models.UserView = user_views.pop(0)
+        r.set(str(call.message.chat.id), json.dumps([v.id for v in user_views]), 5*60)
+    else:
+        queryset_cache: List[models.UserView.id] = json.loads(queryset_cache)
+        user_view = await models.UserView.get(id = queryset_cache.pop(0))
+        ttl = r.ttl(str(call.message.chat.id))
+        if ttl > 0:
+                r.set(str(call.message.chat.id), json.dumps(queryset_cache), ttl)
+                
+    await user_view.save()
+    target_user = await user_view.target_user
+    avatar = await target_user.avatar
+    
+    zodiak = await zodiac_sign(target_user.birthday)
+
+    year = datetime.now().year
+    text = f"{target_user.name}, {year-target_user.birthday.year}\n"  \
+           f"{zodiak}\n" \
+           f"🗺️ {target_user.place}\n" \
+           f"👫 {target_user.marital_status}\n"  \
+           f"Дети: "
+    if target_user.children is True:
+        text += "Есть\n"
+    elif target_user.children is False:
+        text += "Нет\n"
+    elif target_user.children is None:
+        text += "Не скажу\n"
+    if target_user.children_age != []:
+        text += "Возраст детей: " + ", ".join([str(i)+" г." for i in target_user.children_age]) + "\n"
+    target_hobbies = await target_user.hobbies.all()
+    if target_hobbies:
+        text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
+    relation = await user_view.relation
+    text += f"Процент совместимости: {relation.percent_compatibility}%"
+
+    photo_types = ('jpeg', 'jpg', "webm", "png")
+    video_types = ("mp4", "avi")
+    
+    if avatar.file_type.lower() in photo_types:
+        await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count)) 
+    elif avatar.file_type.lower() in video_types:
+        await call.message.answer_video(video=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count))
+
+
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == "mutal_likes")
+async def mutal_likes_handler(call: types.CallbackQuery):
+    print(call.data)
+    user = await models.UserModel.get(tg_id=call.message.chat.id)
+    offset = int(call.data.split(':')[1])
+    count_mutal_like = await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).count()
+    if offset >= count_mutal_like:
+        offset = 0
+    if offset < 0:
+        offset = count_mutal_like - 1
+    mutal_like = await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).order_by('-created_at').offset(offset).limit(1)    
+    if len(mutal_like) == 0:
+        return await call.answer("У вас нет взаимных лайков.")
+    mutal_like = mutal_like[0]
+    if mutal_like.target_user_id == user.id:
+        target_user = await mutal_like.user
+    else:
+        target_user = await mutal_like.target_user
+    avatar = await target_user.avatar
+    
+    zodiak = await zodiac_sign(target_user.birthday)
+
+    year = datetime.now().year
+    text = f"{target_user.name}, {year-target_user.birthday.year}\n"  \
+           f"@{target_user.tg_username}\n"  \
+           f"{zodiak}\n" \
+           f"🗺️ {target_user.place}\n" \
+           f"👫 {target_user.marital_status}\n"  \
+           f"Дети: "
+    if target_user.children is True:
+        text += "Есть\n"
+    elif target_user.children is False:
+        text += "Нет\n"
+    elif target_user.children is None:
+        text += "Не скажу\n"
+    if target_user.children_age != []:
+        text += "Возраст детей: " + ", ".join([str(i)+" г." for i in target_user.children_age]) + "\n"
+    target_hobbies = await target_user.hobbies.all()
+    if target_hobbies:
+        text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
+
+    relation = await models.UsersRelations.get_or_none(Q(user=user) & Q(target_user=target_user))
+    if not relation:
+        relation = await models.UsersRelations.get_or_none(Q(target_user=user) & Q(user=target_user))
+
+    text += f"Процент совместимости: {relation.percent_compatibility}%"
+
+    photo_types = ('jpeg', 'jpg', "webm", "png")
+    video_types = ("mp4", "avi")
+    await call.message.delete()
+    if avatar.file_type.lower() in photo_types:
+        await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await mutal_likes_keyboard(offset=offset)) 
+    elif avatar.file_type.lower() in video_types:
+        await call.message.answer_video(video=avatar.file_id, caption=text, reply_markup=await mutal_likes_keyboard(offset=offset))
+
