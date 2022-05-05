@@ -6,8 +6,17 @@ from models.models import DatingInterestPlace, Hobbies, UserModel, PurposeOfDati
 
 async def main_profile_keyboard():
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text='📷 Фото',callback_data='change_ava:'), 
+    keyboard.add(types.InlineKeyboardButton(text='📷 Фото',callback_data='change_ava:'),    
                  types.InlineKeyboardButton(text='Увлечения',callback_data='change_hobbies:'))
+
+    keyboard.add(types.InlineKeyboardButton(text='Семейное положение',callback_data='change_marriage:'),    
+                 types.InlineKeyboardButton(text='Переезд в Дубаи',callback_data='change_remove_dubai:'))
+    
+    keyboard.add(types.InlineKeyboardButton(text='Возраст',callback_data='change_bday:'),    #change_marriage
+                 types.InlineKeyboardButton(text='Город',callback_data='change_place:'))
+
+    keyboard.add(types.InlineKeyboardButton(text='Цель знакомства',callback_data='change_purp:'),    #change_marriage
+                 types.InlineKeyboardButton(text='Дети',callback_data='change_children:'))
     return keyboard
 
 async def gender_keyboard():
@@ -24,10 +33,17 @@ async def city_answer_keyboard():
     return keyboard
 
 
-async def dubai_answer_keyboard():
+async def dubai_answer_keyboard(remove_in_dubai: bool = None, callback: str = 'remove_dubai'):
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text='Да',callback_data='remove_dubai:yes'), 
-                 types.InlineKeyboardButton(text='Нет',callback_data='remove_dubai:no'))
+    text_yes = 'Да'
+    text_no = 'Нет'
+    if remove_in_dubai is not None:
+        text_yes = '✅ Да' if remove_in_dubai is True else "Да"
+        text_no = '✅ Нет' if remove_in_dubai is False else "Нет"
+    keyboard.add(types.InlineKeyboardButton(text=text_yes,
+                                            callback_data=f'{callback}:yes'), 
+                 types.InlineKeyboardButton(text=text_no,
+                                            callback_data=f'{callback}:no'))
     return keyboard
 
 
@@ -60,35 +76,39 @@ async def remove_hobbie_keyboard(hobbies_list: List[Hobbies]):
     return keyboard
 
 
-async def marital_status_keyboard():
+async def marital_status_keyboard(user_martial_status: str, callback: str = "ms"):
+    '''callback = "ms" or "c_ms"'''
     keyboard = types.InlineKeyboardMarkup()                                         # mar_status - ms
-    status = "Женат/Замужем"
-    keyboard.add(types.InlineKeyboardButton(text=status, callback_data=f"ms:{status}"))
-    status = "В отношениях"
-    keyboard.add(types.InlineKeyboardButton(text=status, callback_data=f"ms:{status}"))
-    status = "Свободен(-на)"
-    keyboard.add(types.InlineKeyboardButton(text=status, callback_data=f"ms:{status}"))
+    status_1 = "Женат/Замужем" 
+    keyboard.add(types.InlineKeyboardButton(text=status_1 if status_1 != user_martial_status else "✅" + status_1, 
+                                            callback_data=f"{callback}:{status_1}"))
+    status_2 = "В отношениях"
+    keyboard.add(types.InlineKeyboardButton(text=status_2 if status_2 != user_martial_status else "✅" + status_2, 
+                                            callback_data=f"{callback}:{status_1}"))
+    status_3 = "Свободен(-на)"
+    keyboard.add(types.InlineKeyboardButton(text=status_3 if status_3 != user_martial_status else "✅" + status_3, 
+                                            callback_data=f"{callback}:{status_3}"))
     return keyboard
 
 
-async def children_keyboard():
+async def children_keyboard(prefix_callback: str = ''):
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text="Да", callback_data=f"children:yes"))
-    keyboard.add(types.InlineKeyboardButton(text="Нет", callback_data=f"skip_children:no"))
-    keyboard.add(types.InlineKeyboardButton(text="Не скажу", callback_data=f"skip_children:not_say"))
+    keyboard.add(types.InlineKeyboardButton(text="Да", callback_data=f"{prefix_callback}add_children:"))
+    keyboard.add(types.InlineKeyboardButton(text="Нет", callback_data=f"{prefix_callback}skip_children:no"))
+    keyboard.add(types.InlineKeyboardButton(text="Не скажу", callback_data=f"{prefix_callback}skip_children:not_say"))
     return keyboard
 
 
-async def purp_keyboard(user_purp: List[PurposeOfDating]):
+async def purp_keyboard(user_purp: List[PurposeOfDating], callback_for_next: str = "send_ava", callback_for_purp: str = "purp"):
     keyboard = types.InlineKeyboardMarkup()
     purps = await PurposeOfDating.all()
     for purp in purps:
         text = purp.title_purp
         if purp in user_purp:
             text = "✅ " + text
-        keyboard.add(types.InlineKeyboardButton(text=text, callback_data=f"purp:{purp.id}"))
+        keyboard.add(types.InlineKeyboardButton(text=text, callback_data=f"{callback_for_purp}:{purp.id}"))
     if len(user_purp) > 0:
-        keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=f"send_ava:"))
+        keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=f"{callback_for_next}:"))
     return keyboard
 
 

@@ -37,7 +37,7 @@ class UserModel(Model):
     #     "models.AvatarModel", related_name="user", null=True, on_delete="SET NULL"
     # )
     avatar: fields.OneToOneRelation["AvatarModel"]
-    search_radius: int = fields.IntField(default=7000)
+    # search_radius: int = fields.IntField(default=7000)
 
     superlike_count: int = fields.IntField(default=1)
 
@@ -61,10 +61,14 @@ class UsersRelations(Model):
     )
     percent_compatibility: int = fields.IntField()
     
+    result_distance_check: bool = fields.BooleanField()
+    result_purp_check: bool = fields.BooleanField()
+
     percent_age: int = fields.IntField()
     percent_children: int = fields.IntField()
     percent_hobbies: int = fields.IntField()
 
+    
 
 
 class UserView(Model):

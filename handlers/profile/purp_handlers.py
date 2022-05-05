@@ -1,28 +1,59 @@
+from handlers.profile.bday_handers import recalculation_age
 from loader import dp
 from models import models
 from aiogram import types
 from keyboards.inline.user_settings_keyboards import purp_keyboard
+from handlers.calculation_relations.recalculation_relations import recalculation_purp
+from tortoise.queryset import Q
+from .views_self_profile_handlers import profile_handler
+
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_purp')
+async def purp_handler(call: types.CallbackQuery, change: bool = None):
+    if isinstance(call, types.Message):
+        user = await models.UserModel.get(tg_id=call.chat.id)
+    else:
+        user = await models.UserModel.get(tg_id=call.message.chat.id)
+    text = 'Выберите цели знакомства'
+    callback_for_next = 'send_ava'
+    callback_for_purp = "purp"
+    if change is False:
+        pass
+    elif call.data.split(':')[0] == 'change_purp':
+        callback_for_next = "change_purp_quit"
+        callback_for_purp = "change_val_purp"
+    keyboard = await purp_keyboard(user_purp=await user.purp_dating.all(), 
+                                   callback_for_purp=callback_for_purp, 
+                                   callback_for_next=callback_for_next)
+    if isinstance(call, types.Message):
+        return await call.answer(text, reply_markup=keyboard)
+    await call.message.delete()
+    return await call.message.answer(text, reply_markup=keyboard)
+
+
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'purp')
-@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'skip_children')
-async def purp_handler(call: types.CallbackQuery):
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_val_purp')
+async def change_purp_handler(call: types.CallbackQuery):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
-    if call.data.split(':')[0] == 'purp':
-        purp_id = int(call.data.split(':')[1]) 
-        purp = await models.PurposeOfDating.get(id=purp_id)
-        
-        if purp in await user.purp_dating.all():
-            await user.purp_dating.remove(purp)
-        else:
-            await user.purp_dating.add(purp)
-    if call.data.split(':')[0] == 'skip_children':
-        if call.data.split(':')[1] == 'no':
-            user.children = False
-            await call.answer("Вы выбрали: Нет детей")
-        else:
-            user.children = None
-            await call.answer("Вы выбрали: Не скажу")
-        await user.save()
-    await call.message.edit_text('Выберите цели знакомства', reply_markup=await purp_keyboard(await user.purp_dating.all()))
+    purp_id = int(call.data.split(':')[1]) 
+    purp = await models.PurposeOfDating.get(id=purp_id)
+    if purp in await user.purp_dating.all():
+        await user.purp_dating.remove(purp)
+    else:
+        await user.purp_dating.add(purp)
+    change = False
+    if call.data.split(':')[0] == "change_val_purp":
+        change = True
+    return await purp_handler(call, change)
+
+
+
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_purp_quit')
+async def change_purp_quit_handler(call: types.CallbackQuery):
+    user = await models.UserModel.get(tg_id=call.message.chat.id)
+    await recalculation_purp(user)
+    await call.message.delete()
+    return await profile_handler(call.message)
+
 
 
