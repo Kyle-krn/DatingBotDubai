@@ -5,7 +5,7 @@ from loader import bot
 from loader import dp
 from aiogram import types
 from handlers.calculation_relations.relations_handlers import calculation_2_user
-
+from tortoise.queryset import Q
 
 async def send_new_registration_in_chanel(user: models.UserModel, old: bool = False):
     avatar = await user.avatar
@@ -44,7 +44,7 @@ async def send_new_registration_in_chanel(user: models.UserModel, old: bool = Fa
     text += f"<b>Marital status</b> - {user.marital_status}\n"
     text += "<b>Purp dating</b> - "
     text += ", ".join([i.title_purp for i in await user.purp_dating.all()]) + "\n"
-    text += f"<b>Search radius</b> - {user.search_radius} km"
+    # text += f"<b>Search radius</b> - {user.search_radius} km"
     if avatar:
         if avatar.file_type.lower() in photo_types:
             await bot.send_photo(-1001732505124, photo=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
@@ -80,7 +80,7 @@ async def calculation_new_user(user: models.UserModel):
     interest_place_5 = await models.DatingInterestPlace.get(id=2)
     interest_place_6 = await models.DatingInterestPlace.get(id=3)
     for target_user in verification_user_list:
-        percent, percent_age, percent_children, percent_hobbies, result_distance_check, result_purp_check = await calculation_2_user(user=user,
+        percent, percent_age, percent_children, percent_hobbies, result_distance_check, result_purp_check, result_gender_check = await calculation_2_user(user=user,
                                                                                                                                      target_user=target_user,
                                                                                                                                      purp_friend=purp_friend,
                                                                                                                                      purp_sex=purp_sex,
@@ -91,17 +91,21 @@ async def calculation_new_user(user: models.UserModel):
                                                                                                                                      interest_place_5=interest_place_5, 
                                                                                                                                      interest_place_6=interest_place_6,
                                                                                                                                      old_user=old_user)
+        print(percent, percent_age, percent_children, percent_hobbies, result_distance_check, result_purp_check, result_gender_check)
         print(f"User {user.tg_username} -> User {target_user.tg_username} = {percent}%")
-        relation = await models.UsersRelations.create(user=user, 
-                                                      target_user=target_user, 
-                                                      percent_compatibility=percent, 
-                                                      percent=percent,
-                                                      percent_age=percent_age,
-                                                      percent_children=percent_children,
-                                                      percent_hobbies=percent_hobbies,
-                                                      result_distance_check=result_distance_check, 
-                                                      result_purp_check=result_purp_check)
-        if percent > 0:
-            await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
-            await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
+        x = await models.UsersRelations.get_or_none(Q(Q(user=user) & Q(target_user=target_user)) | Q(Q(target_user=user) & Q(user=target_user)))
+        if not x:
+            relation = await models.UsersRelations.create(user=user, 
+                                                        target_user=target_user, 
+                                                        percent_compatibility=percent, 
+                                                        percent=percent,
+                                                        percent_age=percent_age,
+                                                        percent_children=percent_children,
+                                                        percent_hobbies=percent_hobbies,
+                                                        result_distance_check=result_distance_check, 
+                                                        result_purp_check=result_purp_check,
+                                                        result_gender_check=result_gender_check)
+            if percent > 0:
+                await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
+                await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
     print('\n')

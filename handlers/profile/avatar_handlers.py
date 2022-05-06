@@ -121,17 +121,19 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         await user.save()
         text = "Аватар успешно изменен! Ожидайте верификации вашего профиля от администрации."
     else:
+        user.end_registration = True
+        await user.save()
         text = "Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации."
     await send_new_registration_in_chanel(user, old=old)
     await message.answer(text, reply_markup=await main_keyboard())
 
 
-@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'skip_ava', state=ProfileSettingsState.avatar)
-async def skip_ava_handler(call: types.CallbackQuery, state: FSMContext):
-    await state.finish()
-    # await send_new_registration_in_chanel()
-    await call.message.delete()
-    await call.message.answer("Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации.", reply_markup=await main_keyboard())
+# @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'skip_ava', state=ProfileSettingsState.avatar)
+# async def skip_ava_handler(call: types.CallbackQuery, state: FSMContext):
+#     await state.finish()
+#     # await send_new_registration_in_chanel()
+#     await call.message.delete()
+#     await call.message.answer("Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации.", reply_markup=await main_keyboard())
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'how_upload_document', state=ProfileSettingsState.avatar)

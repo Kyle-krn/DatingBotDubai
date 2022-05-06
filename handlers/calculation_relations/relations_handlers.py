@@ -34,22 +34,22 @@ async def calculation_2_user(user: models.UserModel,
                                                  interest_place_4=interest_place_4,
                                                  interest_place_5=interest_place_5,
                                                  interest_place_6=interest_place_6)
-    # if result_distance_check:
-    #     return 0, 0, 0, 0
+
 
     result_purp_check = await check_purp(user=user,
                                          target_user=target_user,
                                          purp_friend=purp_friend,
                                          purp_sex=purp_sex,
                                          purp_user=purp_user)
-    # if result_purp_check:
-    #     return 0, 0, 0, 0
-    
+
+    result_settings_gender = await check_settings_gender(user=user,
+                                                        target_user=target_user)
     
     percent += 30 # 30 процентов за прошлые пункты
     
     
     percent_age = await check_age(old_user=old_user,
+                                  user=user,
                                   target_user=target_user)
     percent += percent_age
 
@@ -62,11 +62,11 @@ async def calculation_2_user(user: models.UserModel,
     percent_hobbies = await check_hobbies(target_user=target_user,
                                           hobbies_user=hobbies_user)
     percent += percent_hobbies
-    if result_distance_check is False or result_purp_check is False:
+    if result_distance_check is False or result_purp_check is False or result_settings_gender is False:
         percent = 0
     if percent < 0:
         percent = 0
-    return percent, percent_age, percent_children, percent_hobbies, result_distance_check, result_purp_check
+    return percent, percent_age, percent_children, percent_hobbies, result_distance_check, result_purp_check, result_settings_gender
 
 
 
@@ -81,7 +81,7 @@ async def check_distance(user: models.UserModel,
     ip4 = interest_place_4
     ip5 = interest_place_5
     ip6 = interest_place_6
-    allow_distance = user.search_radius if user.search_radius < target_user.search_radius else target_user.search_radius
+    # allow_distance = user.search_radius if user.search_radius < target_user.search_radius else target_user.search_radius
     distance = geodesic((user.lat, user.long), (target_user.lat, target_user.long)).km
     tip = await target_user.interest_place_companion.all()
 
@@ -175,11 +175,27 @@ async def check_distance(user: models.UserModel,
         return False
     # return True
 
+
+async def check_settings_gender(user: models.UserModel,
+                                target_user: models.UserModel) -> bool:
+    '''Проверяет партнеров по половому признаку'''
+    user_settings: models.UserSearchSettings = await user.search_settings
+    target_user_settings: models.UserSearchSettings = await target_user.search_settings
+    if user_settings.male is not None:
+        if user_settings.male != target_user.male:
+            return False
+    if target_user_settings.male is not None:
+        if target_user_settings.male != user.male:
+            return False
+    return True
+    
+
 async def check_purp(user: models.UserModel, 
                      target_user: models.UserModel,
                      purp_friend: models.PurposeOfDating,
                      purp_sex: models.PurposeOfDating,
-                     purp_user: List[models.PurposeOfDating]):
+                     purp_user: List[models.PurposeOfDating]) -> bool:
+    '''Проверяет партнеров по цели знакомства'''
     purp_target_user = await target_user.purp_dating.all()
     count_purp = 0
     for item in purp_target_user:
@@ -197,9 +213,25 @@ async def check_purp(user: models.UserModel,
 
 
 async def check_age(old_user: int,
+                    user: models.UserModel,
                     target_user: models.UserModel):
     percent_age = 20 # 20 сразу накидываем за возраст
     year_now = datetime.now().year
+    user_settings: models.UserSearchSettings = await user.search_settings
+    tar_user_settings: models.UserSearchSettings = await target_user.search_settings
+    
+    age_user = old_user
+    age_tar_user = year_now-target_user.birthday.year
+
+    if user_settings.min_age is not None or user_settings.max_age is not None:
+        # print(user_settings.min_age < age_tar_user < user_settings.max_age is False)
+        if (user_settings.min_age < age_tar_user < user_settings.max_age) is False:
+            return -1000
+
+    if tar_user_settings.min_age is not None or tar_user_settings.max_age is not None:
+        if (tar_user_settings.min_age < age_user < tar_user_settings.max_age) is False:
+            return -1000
+
     difference = abs(old_user - (year_now-target_user.birthday.year))
     return percent_age - difference * 2 # Вычисляем разницу возраста и отнимаем ее 
 
@@ -207,6 +239,31 @@ async def check_age(old_user: int,
 async def check_children(user: models.UserModel,
                          target_user: models.UserModel):
     percent_children = 0
+    user_settings: models.UserSearchSettings = await user.search_settings
+    tar_user_settings: models.UserSearchSettings = await target_user.search_settings
+    
+    if user_settings.children is not None:
+        if user_settings.children != target_user.children:
+            return -1000
+        if user_settings.children_min_age is not None and user_settings.children_max_age is not None and len(target_user.children_age) > 0:
+            min_age_children = min(target_user.children_age)
+            max_age_children = max(target_user.children_age)
+
+            if user_settings.children_min_age > min_age_children or user_settings.children_max_age < max_age_children:
+                return -1000
+            
+    
+    if tar_user_settings.children is not None:
+        if tar_user_settings.children != user.children:
+            return -1000
+        if tar_user_settings.children_min_age is not None and tar_user_settings.children_max_age is not None and len(user.children_age) > 0:
+            min_age_children = min(user.children_age)
+            max_age_children = max(user.children_age)
+
+            if tar_user_settings.children_min_age > min_age_children or tar_user_settings.children_max_age < max_age_children:
+                return -1000
+
+
     if user.children and target_user.children:
         '''Накидываем проценты за детей'''
         percent_children += 20
@@ -225,3 +282,5 @@ async def check_hobbies(target_user: models.UserModel,
         if target_hobbie in hobbies_user:
             percent_hobbies += 10
     return percent_hobbies
+
+

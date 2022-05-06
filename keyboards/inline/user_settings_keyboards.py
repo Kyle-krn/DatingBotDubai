@@ -19,10 +19,10 @@ async def main_profile_keyboard():
                  types.InlineKeyboardButton(text='Дети',callback_data='change_children:'))
     return keyboard
 
-async def gender_keyboard():
+async def gender_keyboard(callback: str = "gender"):
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text='♂️ Мужчина',callback_data='gender:male'), 
-                 types.InlineKeyboardButton(text='♀️ Женщина',callback_data='gender:female'))
+    keyboard.add(types.InlineKeyboardButton(text='♂️ Мужчина',callback_data=f'{callback}:male'), 
+                 types.InlineKeyboardButton(text='♀️ Женщина',callback_data=f'{callback}:female'))
     return keyboard
 
 
@@ -115,7 +115,7 @@ async def purp_keyboard(user_purp: List[PurposeOfDating], callback_for_next: str
 async def avatar_keyboard():
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(types.InlineKeyboardButton(text="ℹ️ Как загрузить фото без потери качества?", callback_data="how_upload_document:"))
-    keyboard.add(types.InlineKeyboardButton(text="Пропустить", callback_data="skip_ava:"))
+    # keyboard.add(types.InlineKeyboardButton(text="Пропустить", callback_data="skip_ava:"))
     return keyboard
 
 
@@ -126,3 +126,17 @@ async def back_document_keyboard():
     return keyboard
 
 
+async def settings_search_keyboard():
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton(text="Пол", callback_data="settings_gender:"),
+                types.InlineKeyboardButton(text="Возраст", callback_data="settings_age:"))
+    keyboard.add(types.InlineKeyboardButton(text="Дети", callback_data="settings_children:"))
+    return keyboard
+
+
+async def settings_children_keyboard():
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton(text="Есть", callback_data="set_settings_children:yes"))
+    keyboard.add(types.InlineKeyboardButton(text="Нет", callback_data="set_settings_children:no"))
+    keyboard.add(types.InlineKeyboardButton(text="Не важно", callback_data="set_settings_children:none"))
+    return keyboard

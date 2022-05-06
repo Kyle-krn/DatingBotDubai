@@ -10,7 +10,7 @@ class UserModel(Model):
     tg_username: str = fields.CharField(max_length=255, null=True)
     male: bool = fields.BooleanField(null=True)
     name: str = fields.CharField(max_length=255, null=True)
-    about_me: str = fields.TextField(null=True)
+    # about_me: str = fields.TextField(null=True)
     lat: Decimal = fields.DecimalField(max_digits=10, decimal_places=6, null=True)
     long: Decimal = fields.DecimalField(max_digits=10, decimal_places=6, null=True)
     place: str = fields.TextField(null=True)
@@ -37,8 +37,10 @@ class UserModel(Model):
 
     verification: bool = fields.BooleanField(default=False)
     ban: bool = fields.BooleanField(default=False)
+    end_registration: bool = fields.BooleanField(default=False) 
 
     user_view: fields.ReverseRelation["UserView"]
+    search_settings: fields.ReverseRelation["UserSearchSettings"]
 
     # class Meta:
     #     table = 'user'
@@ -65,6 +67,8 @@ class UsersRelations(Model):
     percent_children: int = fields.IntField()
     percent_hobbies: int = fields.IntField()
 
+    result_gender_check: bool = fields.BooleanField()
+
     # class Meta:
     #     table = 'users_relations'
 
@@ -79,8 +83,8 @@ class UserSearchSettings(Model):
     children_min_age: int = fields.IntField(null=True)
     children_max_age: int = fields.IntField(null=True)
 
-    class Meta:
-        table = "user_settings"
+    # class Meta:
+    #     table = "user_settings"
 
 class UserView(Model):
     id: int = fields.IntField(pk=True)
@@ -121,7 +125,6 @@ class AvatarModel(Model):
     file_type: str = fields.CharField(max_length=40)
     photo_bool: bool = fields.BooleanField()
     user: fields.OneToOneRelation[UserModel] = fields.OneToOneField("models.UserModel", related_name="avatar")
-    # user: fields.OneToOneRelation[UserModel]
     # class Meta:
     #     table = "user_avatar"
 

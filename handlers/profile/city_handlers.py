@@ -26,13 +26,14 @@ async def city_set_state_handler(call: types.CallbackQuery):
 @dp.message_handler(state=ProfileSettingsState.city)
 async def city_handler(message: types.Message, state: FSMContext):
     city = message.text
+    msg = await message.answer("Ищем ваш город 🔍")
     city_info, geolocation, tmz= await get_location_by_city(city)
     if not city_info:
-        await message.answer("Такой город не найден, попробуйте снова или отправьте геолокацию по кнопке ниже.")
+        await msg.edit_text("Такой город не найден, попробуйте снова или отправьте геолокацию по кнопке ниже.")
     else:
         state = dp.get_current().current_state()
         await state.update_data(city_info=city_info, geolocation=geolocation, tmz=tmz)
-        await message.answer(f"Ваш город {city_info}?", reply_markup=await city_answer_keyboard())
+        await msg.edit_text(f"Ваш город {city_info}?", reply_markup=await city_answer_keyboard())
 
 
 
@@ -63,7 +64,6 @@ async def answer_city_handler(call: types.CallbackQuery, state: FSMContext):
         if user_data['status_user'] == 'old':
             
             await call.message.answer(text='Успешно!', reply_markup=await main_keyboard())
-            # await t.delete()
 
             if old_value != user.dubai:
                 await recalculation_location(user)
@@ -73,12 +73,10 @@ async def answer_city_handler(call: types.CallbackQuery, state: FSMContext):
                 return await dubai_handler(call.message)
             else:
                 return await call.message.answer("Укажите с кем вы заинтересованы в знакомствах?", reply_markup=await companion_dubai_keyboard(user))
-            
     elif answer == 'no':
         await call.message.edit_text(text="Попробуйте снова", reply_markup=None)
 
 
-# async def recalculation_dubai()
 
 @dp.message_handler(content_types=['location'], state=ProfileSettingsState.city)
 async def geolocation_handler(message: types.Message, state: FSMContext):
