@@ -67,7 +67,7 @@ async def verification_user(call: types.CallbackQuery):
 
 
 async def calculation_new_user(user: models.UserModel):
-    verification_user_list = await models.UserModel.filter(verification=True).exclude(id=user.id)
+    verification_user_list = await models.UserModel.filter(Q(verification=True) & Q(ban=False)).exclude(id=user.id)
     # print(verification_user_list)
     purp_friend = await models.PurposeOfDating.get(id=1)
     purp_sex = await models.PurposeOfDating.get(id=2)

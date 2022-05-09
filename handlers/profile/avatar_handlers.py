@@ -15,12 +15,14 @@ async def send_document_handler(call: types.CallbackQuery):
     await ProfileSettingsState.avatar.set()
     state = dp.get_current().current_state()
     if call.data.split(':')[0] == 'send_ava':
-        await state.update_data(status_user='new')
-        await call.message.edit_text(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard())
+        status_user='new'
+        await state.update_data(status_user=status_user)
+        await call.message.edit_text(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(status_user))
     else:
-        await state.update_data(status_user='old')
+        status_user = 'old'
+        await state.update_data(status_user=status_user)
         await call.message.delete()
-        await call.message.answer(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard())
+        await call.message.answer(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(status_user))
     
 
 
@@ -28,7 +30,7 @@ async def send_document_handler(call: types.CallbackQuery):
 async def back_send_document_handler(call: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     print(user_data)
-    await call.message.edit_text(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard())
+    await call.message.edit_text(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(user_data['status_user']))
 
 
 @dp.message_handler(content_types=['document', 'photo', 'video'], state=ProfileSettingsState.avatar)

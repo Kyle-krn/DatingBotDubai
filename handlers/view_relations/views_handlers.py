@@ -12,8 +12,8 @@ import redis
 import json
 
 from utils.zodiak import zodiac_sign
-
-r = redis.Redis(db=1)
+from models.row_user_likes import rowsql_likes
+redis_cash_2 = redis.Redis(db=2)
 
 @dp.message_handler(commands=['likes'])
 @dp.message_handler(regexp="^(💑 Симпатии)$")
@@ -34,40 +34,49 @@ async def view_relations_handler(message: types.Message):
     else:
         tg_id = message.chat.id
     user = await models.UserModel.get(tg_id=tg_id)
-    count_your_like = await models.UserView.filter(Q(target_user=user) & Q(like=True)).count()
+    if user.end_registration is False:
+        return await message.answer("Вы не закончили регистрацию")
+    elif user.verification is False:
+        return await message.answer("Ваш профиль еще не верифицирован.")
+    # count_your_like = await models.UserView.filter(Q(target_user=user) & Q(like=True) & Q(user__verification=True) & Q(user__ban=False)).count()
     count_mutal_like = await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).count()
-    count_your_like = count_your_like - count_mutal_like
+    your_likes = await rowsql_likes(user.id)
+    # print(x)
     if isinstance(message, types.CallbackQuery):
         await message.message.delete()
-        return await message.message.answer(text, reply_markup=await view_relation_keyboard(count_your_like=count_your_like, count_mutal_like=count_mutal_like))
+        return await message.message.answer(text, reply_markup=await view_relation_keyboard(count_your_like=len(your_likes), count_mutal_like=count_mutal_like))
     else:
-        return await message.answer(text, reply_markup=await view_relation_keyboard(count_your_like=count_your_like, count_mutal_like=count_mutal_like))
+        return await message.answer(text, reply_markup=await view_relation_keyboard(count_your_like=len(your_likes), count_mutal_like=count_mutal_like))
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "your_likes")
 async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int = None):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
-    queryset_cache = r.get(str(call.message.chat.id))
+    queryset_cache = redis_cash_2.get(str(call.message.chat.id))
     if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
-        user_views = []
-        query = Q(target_user=user) & Q(like=True)
-        targets_like_views = models.UserView.filter(query).order_by('dislike', 'count_view', '-relation__percent_compatibility')
-        for target_view in await targets_like_views:
-            user_view = await models.UserView.get(Q(user=user) & Q(target_user_id=target_view.user_id))
-            if not user_view.like:
-                user_views.append(user_view)
-        if len(user_views) == 0:
+        your_likes = [i['id'] for i in await rowsql_likes(user.id)]
+        print(your_likes)
+        # user_views = []
+        # query = Q(target_user=user) & Q(like=True) & Q(user__verification=True) & Q(user__ban=False)
+        # targets_like_views = models.UserView.filter(query).order_by('dislike', 'count_view', '-relation__percent_compatibility')
+        # print(await targets_like_views.sql)
+        # for target_view in await targets_like_views:
+            # user_view = await models.UserView.get(Q(user=user) & Q(target_user_id=target_view.user_id))
+            # if not user_view.like:
+                # user_views.append(user_view)
+        if len(your_likes) == 0:
             return await call.answer("Вас никто не лайкнул.")
-        user_view: models.UserView = user_views.pop(0)
-        r.set(str(call.message.chat.id), json.dumps([v.id for v in user_views]), 5*60)
+        user_view = await models.UserView.get(id=your_likes.pop(0))
+        # user_view: models.UserView = user_views.pop(0)
+        redis_cash_2.set(str(call.message.chat.id), json.dumps(your_likes), 5*60)
     else:
         queryset_cache: List[models.UserView.id] = json.loads(queryset_cache)
         user_view = await models.UserView.get(id = queryset_cache.pop(0))
-        ttl = r.ttl(str(call.message.chat.id))
+        ttl = redis_cash_2.ttl(str(call.message.chat.id))
         if ttl > 0:
-                r.set(str(call.message.chat.id), json.dumps(queryset_cache), ttl)
-                
-    await user_view.save()
+                redis_cash_2.set(str(call.message.chat.id), json.dumps(queryset_cache), ttl)
+    # await user_view.save()
+    await call.message.delete()
     target_user = await user_view.target_user
     avatar = await target_user.avatar
     

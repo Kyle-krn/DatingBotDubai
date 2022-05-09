@@ -1,3 +1,4 @@
+from keyboards.inline.inline_keyboards import one_button_keyboard
 from loader import dp
 from aiogram import types
 from .profile_state import ProfileSettingsState
@@ -17,25 +18,32 @@ async def birthday_handler(call: types.CallbackQuery):
     state = dp.get_current().current_state()
     if call.data.split(':')[0] == 'bday':
         status_user = "new"
+        keyboard = None
     else:
         status_user = "old"
+        keyboard = await one_button_keyboard(text="Отмена", callback="cancel_state:")
     await state.update_data(status_user=status_user)
     await call.message.delete()
-    await call.message.answer("Укажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996")
+    await call.message.answer("Укажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
 
 
 @dp.message_handler(state=ProfileSettingsState.bday)
 async def input_bday_handler(message: types.Message, state: FSMContext):
+    user_data = await state.get_data()
+    if user_data['status_user'] == "new":
+        keyboard = None
+    elif user_data['status_user'] == "old":
+        keyboard = await one_button_keyboard(text="Отмена", callback="cancel_state:")
     try:
         bday = datetime.strptime(message.text, '%d.%m.%Y').date()
     except ValueError:
-        return await message.answer("<b>Не верный формат!</b>\n\nУкажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996")
+        return await message.answer("<b>Не верный формат!</b>\n\nУкажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
     today = date.today()
     age = int((today - bday).total_seconds() / 60 / 60 / 24 / 365)
     if (18 < age < 100) is False:
-        return await message.answer("Обращаем ваше внимание: использование сервиса Zodier запрещено лицам, моложе 18 лет! Возможно, вы ошиблись! Укажите свою дату рождения в формате DD.MM.YYYY, например 23.07.1996")
+        return await message.answer("Обращаем ваше внимание: использование сервиса Zodier запрещено лицам, моложе 18 лет! Возможно, вы ошиблись! Укажите свою дату рождения в формате DD.MM.YYYY, например 23.07.1996", reply_markup=keyboard)
     
-    user_data = await state.get_data()
+    
     user = await models.UserModel.get(tg_id=message.chat.id)
     
 

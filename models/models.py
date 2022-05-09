@@ -31,13 +31,15 @@ class UserModel(Model):
     purp_dating: fields.ManyToManyRelation["PurposeOfDating"] = fields.ManyToManyField(
         "models.PurposeOfDating", related_name="users", through="users_purp"
     )
-
+    end_premium: datetime = fields.DatetimeField(null=True)
     avatar: fields.OneToOneRelation["AvatarModel"]
     superlike_count: int = fields.IntField(default=1)
 
     verification: bool = fields.BooleanField(default=False)
     ban: bool = fields.BooleanField(default=False)
     end_registration: bool = fields.BooleanField(default=False) 
+
+    free_likes = fields.IntField(default=3)
 
     user_view: fields.ReverseRelation["UserView"]
     search_settings: fields.ReverseRelation["UserSearchSettings"]
@@ -48,6 +50,17 @@ class UserModel(Model):
     def __str__(self):
         return f"User #{self.id}: {self.tg_username}"
 
+
+class UserSuccesPayments(Model):
+    id: int = fields.IntField(pk=True)
+    user: fields.ForeignKeyRelation[UserModel] = fields.ForeignKeyField(
+        "models.UserModel", related_name="payments"
+    )
+    createad_at: datetime = fields.DatetimeField(auto_now_add=True)
+    amount: Decimal = fields.DecimalField(max_digits=10, decimal_places=2)
+    product: str = fields.CharField(max_length=200) # Gold | Superlike
+    count_mount_prem: int = fields.IntField(null=True) 
+    superlike_count: int = fields.IntField(null=True)
 
 class UsersRelations(Model):
     '''Процент совместимости междую юзерами'''

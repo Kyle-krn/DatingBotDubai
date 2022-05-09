@@ -29,6 +29,7 @@ async def marriage_handler(call: types.CallbackQuery):
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'c_ms')
 async def mar_status_handler(call: types.CallbackQuery):
     status = call.data.split(':')[1]
+    print(status)
     await call.answer(f"Ваше семейное положение: {status}")
     user = await models.UserModel.get(tg_id=call.message.chat.id)
     user.marital_status = status
@@ -37,5 +38,5 @@ async def mar_status_handler(call: types.CallbackQuery):
         await call.message.edit_text(text="У вас есть дети? Информация будет использоваться для поиска более подходящих вам знакомств.", 
                                     reply_markup=await children_keyboard())
     else:
-        await call.message  .delete()
+        await call.message.delete()
         return await profile_handler(call.message)

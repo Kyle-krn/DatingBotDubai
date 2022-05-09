@@ -222,7 +222,6 @@ async def check_age(old_user: int,
     
     age_user = old_user
     age_tar_user = year_now-target_user.birthday.year
-
     if user_settings.min_age is not None or user_settings.max_age is not None:
         # print(user_settings.min_age < age_tar_user < user_settings.max_age is False)
         if (user_settings.min_age < age_tar_user < user_settings.max_age) is False:
@@ -282,5 +281,6 @@ async def check_hobbies(target_user: models.UserModel,
         if target_hobbie in hobbies_user:
             percent_hobbies += 10
     return percent_hobbies
+
 
 

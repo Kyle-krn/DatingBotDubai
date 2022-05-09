@@ -1,3 +1,4 @@
+from cProfile import Profile
 from models import models
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -20,7 +21,15 @@ async def city_set_state_handler(call: types.CallbackQuery):
     else:
         status_user = "new"
     await state.update_data(status_user=status_user)
-    await call.message.answer(text="Введите ваш город", reply_markup=await geolocation_keyboard())
+    await call.message.answer(text="Введите ваш город", reply_markup=await geolocation_keyboard(status_user=status_user))
+
+@dp.message_handler(lambda message: message.text == '🛑 Отмена', state=ProfileSettingsState.city)
+async def city_cancel_state_handler(message: types.Message, state: FSMContext):
+    await message.delete()
+    await message.answer("Город не изменен.", reply_markup=await main_keyboard())
+    await state.finish()
+    return await profile_handler(message)
+
 
 
 @dp.message_handler(state=ProfileSettingsState.city)

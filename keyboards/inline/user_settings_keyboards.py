@@ -21,8 +21,11 @@ async def main_profile_keyboard():
 
 async def gender_keyboard(callback: str = "gender"):
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text='♂️ Мужчина',callback_data=f'{callback}:male'), 
-                 types.InlineKeyboardButton(text='♀️ Женщина',callback_data=f'{callback}:female'))
+    mal_button = types.InlineKeyboardButton(text='♂️ Мужчина',callback_data=f'{callback}:male') 
+    fem_button = types.InlineKeyboardButton(text='♀️ Женщина',callback_data=f'{callback}:female')
+    keyboard.add(mal_button, fem_button)
+    if callback == 'partner_gender':
+        keyboard.add(types.InlineKeyboardButton(text='⚤ Не важно',callback_data=f'{callback}:none'))
     return keyboard
 
 
@@ -84,7 +87,7 @@ async def marital_status_keyboard(user_martial_status: str, callback: str = "ms"
                                             callback_data=f"{callback}:{status_1}"))
     status_2 = "В отношениях"
     keyboard.add(types.InlineKeyboardButton(text=status_2 if status_2 != user_martial_status else "✅" + status_2, 
-                                            callback_data=f"{callback}:{status_1}"))
+                                            callback_data=f"{callback}:{status_2}"))
     status_3 = "Свободен(-на)"
     keyboard.add(types.InlineKeyboardButton(text=status_3 if status_3 != user_martial_status else "✅" + status_3, 
                                             callback_data=f"{callback}:{status_3}"))
@@ -112,9 +115,11 @@ async def purp_keyboard(user_purp: List[PurposeOfDating], callback_for_next: str
     return keyboard
 
 
-async def avatar_keyboard():
+async def avatar_keyboard(status_user: str):
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(types.InlineKeyboardButton(text="ℹ️ Как загрузить фото без потери качества?", callback_data="how_upload_document:"))
+    if status_user == 'old':
+        keyboard.add(types.InlineKeyboardButton(text="Назад", callback_data="cancel_state:"))
     # keyboard.add(types.InlineKeyboardButton(text="Пропустить", callback_data="skip_ava:"))
     return keyboard
 
@@ -139,4 +144,5 @@ async def settings_children_keyboard():
     keyboard.add(types.InlineKeyboardButton(text="Есть", callback_data="set_settings_children:yes"))
     keyboard.add(types.InlineKeyboardButton(text="Нет", callback_data="set_settings_children:no"))
     keyboard.add(types.InlineKeyboardButton(text="Не важно", callback_data="set_settings_children:none"))
+    keyboard.add(types.InlineKeyboardButton(text="Назад", callback_data="set_settings_children:cancel"))
     return keyboard

@@ -6,4 +6,6 @@ from . import dating
 from . import view_relations
 from . import start
 from . import search_settings
+from . import payments
+from . import cancel_state_handler
 

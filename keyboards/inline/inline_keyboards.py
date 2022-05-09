@@ -29,3 +29,11 @@ async def mutal_likes_keyboard(offset):
                  types.InlineKeyboardButton(text="➡️", callback_data=f"mutal_likes:{offset+1}"))
     keyboard.add(types.InlineKeyboardButton(text="Назад", callback_data="back_likes:"))
     return keyboard
+
+
+async def one_button_keyboard(text: str, callback: str):
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton(text=text, callback_data=callback))
+    return keyboard
+
+

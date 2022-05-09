@@ -5,7 +5,7 @@ from aiogram.dispatcher import DEFAULT_RATE_LIMIT
 from aiogram.dispatcher.handler import CancelHandler, current_handler
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.utils.exceptions import Throttled
-
+from models import models
 
 class ThrottlingMiddleware(BaseMiddleware):
     """
@@ -35,3 +35,29 @@ class ThrottlingMiddleware(BaseMiddleware):
     async def message_throttled(self, message: types.Message, throttled: Throttled):
         if throttled.exceeded_count <= 2:
             await message.reply("Too many requests!")
+
+
+class BanMiddleware(BaseMiddleware):
+    async def on_process_message(self, message: types.Message, data: dict):
+        await self.check_ban_user(message)
+    
+    async def on_process_callback_query(self, call: types.CallbackQuery, data: dict):
+        await self.check_ban_user(call.message)
+    
+    async def check_ban_user(self, message: types.Message):
+        try:
+            user = await models.UserModel.get(tg_id=message.chat.id)
+        except Exception as e:
+            print(e)
+            return
+
+        if user.tg_username != message.chat.username:
+            user.tg_username = message.chat.username
+            if user.name != message.chat.full_name:
+                user.name = message.chat.full_name
+            await user.save()
+            
+        if user.ban is True:
+            raise CancelHandler()
+        
+

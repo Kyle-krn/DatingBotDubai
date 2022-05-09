@@ -11,7 +11,6 @@ IP = env.str("ip")  # Тоже str, но для айпи адреса хоста
 USER = env.str('USER_DB')
 PASSWORD = env.str('PASSWORD')
 HOST = env.str('HOST')
-# print(HOST)
 PORT = env.str('PORT')
 DATABASE = env.str('DATABASE')
 
