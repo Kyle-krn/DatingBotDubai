@@ -38,8 +38,6 @@ async def recalculation_children(user: models.UserModel):
                 new_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies
                 if new_percent > 0:                                                                                     # С булевым значениями и проверять валидность отношений 
                     relation.percent_compatibility = new_percent                                                  # например если хоть в одном чеке будет False то отношения
-                    # user_view = await models.UserView.get_or_none(user=user, relation=relation)                   # уходят в 0 процентов
-                    # if user_view is None:
                     await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
                     await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
                 else:
@@ -191,3 +189,5 @@ async def recalculation_by_gender(user: models.UserModel):
                     relation.percent_compatibility = 0
                 # await relation.save()
             await relation.save()
+
+
