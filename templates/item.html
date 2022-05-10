@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block body %}
+    <br>
+    <link type="text/css" href="/static/css/img.css" rel="stylesheet" />
+    <script src="/static/js/modal.js"></script>
+
+    {% for u in users %}
+        <!-- <img src={{u.file_path}} alt="альтернативный текст"> -->
+        <img src={{u.file_path}} style="max-width:100%;cursor:pointer" onclick="onClick(this)" class="modal-hover-opacity">
+</div>
+
+    {% endfor %}
+
+    <div id="modal01" class="modal" onclick="this.style.display='none'">
+        <span class="close">&times;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        <div class="modal-content">
+          <img id="img01" style="max-width:100%">
+        </div>
+      </div>
+
+{% endblock %}

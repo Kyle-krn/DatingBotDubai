@@ -43,7 +43,8 @@ class UserModel(Model):
 
     user_view: fields.ReverseRelation["UserView"]
     search_settings: fields.ReverseRelation["UserSearchSettings"]
-
+    
+    last_verification_time: datetime = fields.DatetimeField(null=True)
     # class Meta:
     #     table = 'user'
 

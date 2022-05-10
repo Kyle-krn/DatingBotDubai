@@ -1,3 +1,4 @@
+from datetime import datetime
 from data.config import PHOTO_TYPES, VIDEO_TYPES
 from loader import dp
 from models import models
@@ -38,9 +39,6 @@ async def back_send_document_handler(call: types.CallbackQuery, state: FSMContex
 async def upload_file_handler(message: types.Message, state: FSMContext):
     user = await models.UserModel.get(tg_id=message.chat.id)
     user_data = await state.get_data()
-    # print(await user.avatar)
-    # if await user.avatar:
-    #     await user.avatar.delete()
     static_path = "static/"
     folder_path = f'avatar_telegram/{user.id}/'
     full_path = static_path + folder_path
@@ -55,19 +53,6 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         file_path = full_path + f'avatar.{file_type}'
         photo_bool=False
         await message.video.download(file_path)
-        # avatar = await models.AvatarModel.get_or_none(user=user)
-        # if not avatar:
-        #     avatar = await models.AvatarModel.create(file_id=file_id,
-        #                                              photo_bool=False,
-        #                                              file_path=file_path,
-        #                                              file_type=file_type,
-        #                                              user=user)
-        # else:
-        #     avatar.file_id = file_id
-        #     avatar.photo_bool=False
-        #     avatar.file_path=file_path
-        #     avatar.file_type=file_type
-        #     await avatar.save()
 
     elif message.photo:
         file_id = message.photo[-1].file_id
@@ -75,19 +60,13 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         photo_bool=True
         file_type="jpg"
         await message.photo[-1].download(file_path)
-        # avatar = await models.AvatarModel.create(file_id=file_id, 
-        #                                   photo_bool=True,
-        #                                   file_path=file_path, 
-        #                                   file_type="jpg",
-        #                                   user=user)
+
     elif message.document:
         if (message.document.file_size / 1024 / 1024) > 10:
             return await message.answer("Пожалуйста, загрузите файл до 10 Мб.")
         file_id = message.document.file_id
         file_type = message.document.file_name.split('.')[-1]
         file_path = full_path + f'avatar.{file_type}'
-        # photo_types = ('jpeg', "webm", "png")
-        # video_types = ("mp4", "avi")
         if file_type.islower() not in PHOTO_TYPES + VIDEO_TYPES:
             return await message.answer("Разрешенные типы данных: jpeg, webm, png, mp4, avi")
         elif file_type.islower() in PHOTO_TYPES:
@@ -95,13 +74,7 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         elif file_type.islower() in VIDEO_TYPES:
             photo_bool = False
         await message.document.download(file_path)
-        # avatar = await models.AvatarModel.create(file_id=file_id,
-        #                                   photo_bool=photo_bool,
-        #                                   file_path=file_path, 
-        #                                   file_type=file_type,
-        #                                   user=user)
-    # user.avatar = avatar
-    # await user.save()
+
     avatar = await models.AvatarModel.get_or_none(user=user)
     if not avatar:
         avatar = await models.AvatarModel.create(file_id=file_id,
@@ -119,11 +92,13 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
     old = False
     if user_data['status_user'] == 'old':
         user.verification = False
+        user.last_verification_time = datetime.utcnow()
         old = True
         await user.save()
         text = "Аватар успешно изменен! Ожидайте верификации вашего профиля от администрации."
     else:
         user.end_registration = True
+        user.last_verification_time = datetime.utcnow()
         await user.save()
         text = "Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации."
     # await send_new_registration_in_chanel(user, old=old)
