@@ -1,14 +1,8 @@
-from datetime import date
-from keyboards.inline.inline_keyboards import one_button_keyboard
 from loader import dp
 from aiogram import types
 from models import models
-from keyboards.inline.user_settings_keyboards import settings_search_keyboard, gender_keyboard, settings_children_keyboard
-from handlers.calculation_relations.relations_handlers import check_settings_gender
-from handlers.calculation_relations.recalculation_relations import get_target_user_from_relation, recalculation_age, recalculation_children, recalculation_by_gender
-from tortoise.queryset import Q
-from aiogram.dispatcher import FSMContext
-from .settings_state import SearchSettingsState
+from keyboards.inline.user_settings_keyboards import settings_search_keyboard
+
 
 
     

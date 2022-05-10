@@ -75,7 +75,7 @@ async def check_distance(user: models.UserModel,
                          interest_place_user: List[models.DatingInterestPlace],
                          interest_place_4: models.DatingInterestPlace, 
                          interest_place_5: models.DatingInterestPlace, 
-                         interest_place_6: models.DatingInterestPlace, ):
+                         interest_place_6: models.DatingInterestPlace) -> bool:
 
     ipu = interest_place_user
     ip4 = interest_place_4
@@ -214,7 +214,7 @@ async def check_purp(user: models.UserModel,
 
 async def check_age(old_user: int,
                     user: models.UserModel,
-                    target_user: models.UserModel):
+                    target_user: models.UserModel) -> int:
     percent_age = 20 # 20 сразу накидываем за возраст
     year_now = datetime.now().year
     user_settings: models.UserSearchSettings = await user.search_settings
@@ -236,7 +236,7 @@ async def check_age(old_user: int,
 
 
 async def check_children(user: models.UserModel,
-                         target_user: models.UserModel):
+                         target_user: models.UserModel) -> int:
     percent_children = 0
     user_settings: models.UserSearchSettings = await user.search_settings
     tar_user_settings: models.UserSearchSettings = await target_user.search_settings
@@ -275,7 +275,7 @@ async def check_children(user: models.UserModel,
 
 
 async def check_hobbies(target_user: models.UserModel,
-                        hobbies_user: List[models.Hobbies]):
+                        hobbies_user: List[models.Hobbies]) -> int:
     percent_hobbies = 0
     for target_hobbie in await target_user.hobbies.all():
         if target_hobbie in hobbies_user:

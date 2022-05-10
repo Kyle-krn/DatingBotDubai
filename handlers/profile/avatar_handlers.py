@@ -1,3 +1,4 @@
+from data.config import PHOTO_TYPES, VIDEO_TYPES
 from loader import dp
 from models import models
 from aiogram import types
@@ -5,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 from keyboards.inline.user_settings_keyboards import avatar_keyboard, back_document_keyboard
 from keyboards.reply_keyboards.keyboards import main_keyboard
 from .profile_state import ProfileSettingsState
-from handlers.group.new_reg_user_handlers import send_new_registration_in_chanel
+from handlers.group.new_reg_user_handlers import calculation_new_user, send_new_registration_in_chanel
 import os
 
 
@@ -74,7 +75,6 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         photo_bool=True
         file_type="jpg"
         await message.photo[-1].download(file_path)
-        await message.answer_photo(photo=file_id)
         # avatar = await models.AvatarModel.create(file_id=file_id, 
         #                                   photo_bool=True,
         #                                   file_path=file_path, 
@@ -86,13 +86,13 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         file_id = message.document.file_id
         file_type = message.document.file_name.split('.')[-1]
         file_path = full_path + f'avatar.{file_type}'
-        photo_types = ('jpeg', "webm", "png")
-        video_types = ("mp4", "avi")
-        if file_type.islower() not in photo_types + video_types:
+        # photo_types = ('jpeg', "webm", "png")
+        # video_types = ("mp4", "avi")
+        if file_type.islower() not in PHOTO_TYPES + VIDEO_TYPES:
             return await message.answer("Разрешенные типы данных: jpeg, webm, png, mp4, avi")
-        elif file_type.islower() in photo_types:
+        elif file_type.islower() in PHOTO_TYPES:
             photo_bool = True
-        elif file_type.islower() in video_types:
+        elif file_type.islower() in VIDEO_TYPES:
             photo_bool = False
         await message.document.download(file_path)
         # avatar = await models.AvatarModel.create(file_id=file_id,
@@ -126,7 +126,8 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         user.end_registration = True
         await user.save()
         text = "Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации."
-    await send_new_registration_in_chanel(user, old=old)
+    # await send_new_registration_in_chanel(user, old=old)
+    await calculation_new_user(user)
     await message.answer(text, reply_markup=await main_keyboard())
 
 

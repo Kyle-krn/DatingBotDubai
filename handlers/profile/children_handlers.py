@@ -1,3 +1,4 @@
+from handlers.calculation_relations.relations_handlers import check_children
 from loader import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -5,7 +6,7 @@ from keyboards.inline.user_settings_keyboards import purp_keyboard, children_key
 from models import models
 from .profile_state import ProfileSettingsState
 from .purp_handlers import purp_handler
-from handlers.calculation_relations.recalculation_relations import recalculation_children
+from handlers.calculation_relations.recalculation_relations import recalculation_int
 from tortoise.queryset import Q
 from .views_self_profile_handlers import profile_handler
 
@@ -71,7 +72,9 @@ async def children_state_handler(message: types.Message, state: FSMContext):
         return await purp_handler(message, change=False)
     else:
         if user_data['old_value_children_age'] != user.children_age or user_data['old_value_children'] != user.children:
-            await recalculation_children(user=user)
+            await recalculation_int(user=user,
+                            check_func=check_children,
+                            attr_name="percent_children")
         return await profile_handler(message)
         
 
@@ -96,7 +99,9 @@ async def skip_children_hanlder(call: types.CallbackQuery):
         return await purp_handler(call, change=False)
     else:
         if old_value_children != user.children:
-            await recalculation_children(user=user)
+            await recalculation_int(user=user,
+                            check_func=check_children,
+                            attr_name="percent_children")
         await call.message.delete()
         return await profile_handler(call.message)
 

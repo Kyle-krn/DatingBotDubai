@@ -1,6 +1,7 @@
 import asyncio
 import aioschedule
 from datetime import datetime, timedelta
+from data.config import PHOTO_TYPES, VIDEO_TYPES
 from handlers.dating.dating_handlers import search_dating
 from keyboards.inline.inline_keyboards import like_keyboard
 from models import models
@@ -14,8 +15,8 @@ async def update_likes():
     await models.UserModel.filter(free_likes__lt=3).update(free_likes=3)
 
 async def spam_motivation_message(bot: Bot):
-    photo_types = ('jpeg', 'jpg', "webm", "png")
-    video_types = ("mp4", "avi")
+    # photo_types = ('jpeg', 'jpg', "webm", "png")
+    # video_types = ("mp4", "avi")
     list_users = [await models.UserModel.get(id=123)]
     for user in list_users:
         local_time_user = datetime.utcnow() + timedelta(hours=user.tmz)
@@ -51,9 +52,9 @@ async def spam_motivation_message(bot: Bot):
                 avatar = await target_user.avatar
                     
                 text += await generate_ad_text(target_user=target_user, relation=await user_view.relation)
-                if avatar.file_type.lower() in photo_types:
+                if avatar.file_type.lower() in PHOTO_TYPES:
                     return await bot.send_photo(chat_id=user.tg_id, photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, superlike_count=user.superlike_count)) 
-                elif avatar.file_type.lower() in video_types:
+                elif avatar.file_type.lower() in VIDEO_TYPES:
                     return await bot.send_video(chat_id=user.tg_id, video=avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, superlike_count=user.superlike_count))
             
 

@@ -1,4 +1,5 @@
-from handlers.calculation_relations.recalculation_relations import recalculation_children
+from handlers.calculation_relations.recalculation_relations import recalculation_int
+from handlers.calculation_relations.relations_handlers import check_children
 from keyboards.inline.user_settings_keyboards import settings_children_keyboard
 from loader import dp
 from aiogram import types
@@ -31,7 +32,9 @@ async def set_settings_children_handler(call: types.CallbackQuery):
         settings.children_min_age = None
         settings.children_max_age = None
         await settings.save()
-        await recalculation_children(user=user)
+        await recalculation_int(user=user,
+                            check_func=check_children,
+                            attr_name="percent_children")
     await call.message.delete()
     return await settings_handler(call.message)
 
@@ -71,6 +74,8 @@ async def set_value_children_age_hanlder(message: types.Message, state: FSMConte
     settings.children_min_age = min
     settings.children_max_age = max
     await settings.save()
-    await recalculation_children(user=user)
+    await recalculation_int(user=user,
+                            check_func=check_children,
+                            attr_name="percent_children")
     await state.finish()
     return await settings_handler(message)

@@ -1,4 +1,5 @@
 import re
+from data.config import PHOTO_TYPES, VIDEO_TYPES
 from loader import dp, bot
 from aiogram import types
 from models import models
@@ -17,8 +18,8 @@ redis_cash_1 = redis.Redis(db=1)
 @dp.message_handler(commands=['dating'])
 @dp.message_handler(regexp="^(👥 Найти пару)$")
 async def search_dating(message: types.Message, last_view_id: int = None):
-    photo_types = ('jpeg', 'jpg', "webm", "png")
-    video_types = ("mp4", "avi")
+    # photo_types = ('jpeg', 'jpg', "webm", "png")
+    # video_types = ("mp4", "avi")
 
     user = await models.UserModel.get(tg_id=message.chat.id)
     if user.end_registration is False:
@@ -55,9 +56,9 @@ async def search_dating(message: types.Message, last_view_id: int = None):
 
     text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
 
-    if avatar.file_type.lower() in photo_types:
+    if avatar.file_type.lower() in PHOTO_TYPES:
         await message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, superlike_count=user.superlike_count)) 
-    elif avatar.file_type.lower() in video_types:
+    elif avatar.file_type.lower() in VIDEO_TYPES:
         await message.answer_video(video=avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, superlike_count=user.superlike_count))
     
 
@@ -101,7 +102,14 @@ async def reaction_ad_handler(call: types.CallbackQuery):
         else:
             view.like = True
             view.superlike = True
-            await bot.send_message(chat_id=target_user.tg_id, text=f"Пользователь @{user.tg_username} отправил вам суперлайк!")
+            text_1 = f"Пользователь @{user.tg_username} отправил вам суперлайк!\n\n"
+            text = text_1 + await generate_ad_text(target_user=target_user, relation=await view.relation)
+            avatar_tar = await target_user.avatar
+            if avatar_tar.file_type.lower() in PHOTO_TYPES:
+                await call.message.answer_photo(photo=avatar_tar.file_id, caption=text) 
+            elif avatar_tar.file_type.lower() in VIDEO_TYPES:
+                await call.message.answer_video(video=avatar_tar.file_id, caption=text)
+            await bot.send_message(chat_id=target_user.tg_id, text=text)
             user.superlike_count -= 1
             await user.save()
 
@@ -119,8 +127,7 @@ async def mutal_like_func(message: types.Message,
                           user: models.UserModel,
                           target_user: models.UserModel, 
                           relation: models.UsersRelations):
-    photo_types = ('jpeg', 'jpg', "webm", "png")
-    video_types = ("mp4", "avi")
+    
     print(user, target_user)
     avatar_user = await user.avatar
     avatar_tar = await target_user.avatar
@@ -128,9 +135,9 @@ async def mutal_like_func(message: types.Message,
     text = text_1 + await generate_ad_text(target_user=target_user, relation=await relation)
     
     
-    if avatar_user.file_type.lower() in photo_types:
+    if avatar_tar.file_type.lower() in PHOTO_TYPES:
         await message.answer_photo(photo=avatar_tar.file_id, caption=text) 
-    elif avatar_user.file_type.lower() in video_types:
+    elif avatar_tar.file_type.lower() in VIDEO_TYPES:
         await message.answer_video(video=avatar_tar.file_id, caption=text)
         
     
@@ -138,9 +145,9 @@ async def mutal_like_func(message: types.Message,
     text = text_1 + await generate_ad_text(target_user=user, relation=await relation)
     # await bot.send_message(chat_id=target_user.tg_id, text=text)
     
-    if avatar_tar.file_type.lower() in photo_types:
+    if avatar_user.file_type.lower() in PHOTO_TYPES:
         await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text) 
-    elif avatar_tar.file_type.lower() in video_types:
+    elif avatar_user.file_type.lower() in VIDEO_TYPES:
         await bot.send_video(chat_id=target_user.tg_id, video=avatar_user.file_id, caption=text)
 
     await models.MutualLike.create(user=user, target_user=target_user)

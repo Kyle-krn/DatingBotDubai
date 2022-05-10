@@ -1,3 +1,4 @@
+from handlers.calculation_relations.relations_handlers import check_hobbies
 from loader import dp, bot
 from aiogram import types
 from .profile_state import ProfileSettingsState
@@ -7,7 +8,7 @@ from models import models
 from .marriage_handlers import marriage_handler
 from .views_self_profile_handlers import profile_handler
 from tortoise.queryset import Q
-from handlers.calculation_relations.recalculation_relations import recalculation_hobbies
+from handlers.calculation_relations.recalculation_relations import recalculation_int
 from tortoise import Tortoise
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "change_hobbies")
@@ -80,7 +81,7 @@ async def skip_hobbies_handler(call: types.CallbackQuery, state: FSMContext):
     else:
         if user_data['append_hobbie'] is True:
             user = await models.UserModel.get(tg_id=call.message.chat.id)
-            await recalculation_hobbies(user=user)
+            await recalculation_int(user=user, check_func=check_hobbies, attr_name="percent_hobbies")
         await call.message.delete()
         return await profile_handler(call.message)
 

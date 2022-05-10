@@ -1,4 +1,5 @@
 from datetime import datetime
+from data.config import PHOTO_TYPES, VIDEO_TYPES
 from loader import dp
 from aiogram import types
 from models import models
@@ -40,9 +41,9 @@ async def profile_handler(message: types.Message):
     if target_hobbies:
         text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
 
-    photo_types = ('jpeg', 'jpg', "webm", "png")
-    video_types = ("mp4", "avi")
-    if avatar.file_type.lower() in photo_types:
+    # photo_types = ('jpeg', 'jpg', "webm", "png")
+    # video_types = ("mp4", "avi")
+    if avatar.file_type.lower() in PHOTO_TYPES:
         await message.answer_photo(photo=avatar.file_id,caption=text, reply_markup=await main_profile_keyboard())
-    elif avatar.file_type.lower() in video_types:
+    elif avatar.file_type.lower() in VIDEO_TYPES:
         await message.answer_video(video=avatar.file_id, caption=text, reply_markup=await main_profile_keyboard())

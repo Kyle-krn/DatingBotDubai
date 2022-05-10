@@ -1,4 +1,3 @@
-from handlers.profile.bday_handers import recalculation_age
 from loader import dp
 from models import models
 from aiogram import types

@@ -1,10 +1,11 @@
+from datetime import date
 import redis
 from models import models
 from .relations_handlers import check_children, check_age, check_distance, check_hobbies, check_purp, check_settings_gender
 from tortoise.queryset import Q
 from handlers.dating.dating_handlers import redis_cash_1
 from handlers.view_relations.views_handlers import redis_cash_2
-
+from typing import Coroutine
 
 async def clear_cache(r: redis.Redis, key: int):
     query = r.get(str(key))
@@ -25,48 +26,40 @@ async def get_target_user_from_relation(user: models.UserModel, relation: models
         target_user = await relation.target_user
     return target_user
 
-async def recalculation_children(user: models.UserModel):
+
+async def recalculation_int(user: models.UserModel, 
+                            check_func: Coroutine,
+                            attr_name: str,
+                            ):
     relations = await models.UsersRelations.filter(Q(user=user) | Q(target_user=user))
     for relation in relations:
         target_user = await get_target_user_from_relation(user=user, relation=relation)
-        percent_children = await check_children(user=user,
-                                                target_user=target_user)
+        
+        if check_func is check_children:
+            new_percent = await check_func(user=user, target_user=target_user)
+        elif check_func is check_age:
+            today = date.today()
+            old_age = int((today - user.birthday).total_seconds() / 60 / 60 / 24 / 365)
+            new_percent = await check_func(old_user=old_age, user=user, target_user=target_user)
+        elif check_func is check_hobbies:
+            hobbies_user = await user.hobbies.all()
+            new_percent = await check_func(target_user=target_user, hobbies_user=hobbies_user)
+        
 
-        if relation.percent_children != percent_children:
-            relation.percent_children = percent_children
+        old_percent = getattr(relation, attr_name)
+        if old_percent != new_percent:
+            setattr(relation, attr_name, new_percent)
             if relation.result_distance_check is True and relation.result_purp_check is True and relation.result_gender_check is True:
-                new_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies
-                if new_percent > 0:                                                                                     # С булевым значениями и проверять валидность отношений 
-                    relation.percent_compatibility = new_percent                                                  # например если хоть в одном чеке будет False то отношения
+                general_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies
+                if general_percent > 0:
+                    relation.percent_compatibility = general_percent                                                  
                     await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
                     await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
                 else:
                     relation.percent_compatibility = 0
-            await relation.save()
-            await clear_cache_relation(tg_id_1=user.tg_id, tg_id_2=target_user.tg_id)
+        await relation.save()
+        await clear_cache_relation(tg_id_1=user.tg_id, tg_id_2=target_user.tg_id)
 
-
-async def recalculation_age(user: models.UserModel, user_age: int):
-    relations = await models.UsersRelations.filter(Q(user=user) | Q(target_user=user))
-    for relation in relations:
-        target_user = await get_target_user_from_relation(user=user, relation=relation)
-
-        result_age_check = await check_age(old_user=user_age, 
-                                          user=user,
-                                          target_user = target_user)
-        print(f"{user} -> {target_user} ----> {result_age_check}")
-        if relation.percent_age != result_age_check:
-            relation.percent_age = result_age_check
-            if relation.result_distance_check is True and relation.result_purp_check is True and relation.result_gender_check is True:
-                new_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies
-                if new_percent > 0:
-                    relation.percent_compatibility = new_percent
-                    await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
-                    await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
-                else:
-                    relation.percent_compatibility = 0
-            await relation.save()
-            await clear_cache_relation(tg_id_1=user.tg_id, tg_id_2=target_user.tg_id)
 
 
 async def recalculation_location(user: models.UserModel):
@@ -109,26 +102,6 @@ async def recalculation_location(user: models.UserModel):
 
 
 
-async def recalculation_hobbies(user: models.UserModel):
-    hobbies_user = await user.hobbies.all()
-    relations = await models.UsersRelations.filter(Q(user=user) | Q(target_user=user))
-    for relation in relations:
-        target_user = await get_target_user_from_relation(user=user, relation=relation)
-        percent_hobbies = await check_hobbies(target_user=target_user, hobbies_user=hobbies_user)
-        if relation.percent_hobbies != percent_hobbies:
-            relation.percent_hobbies = percent_hobbies
-            if relation.result_distance_check is True and relation.result_purp_check is True and relation.result_gender_check is True: # Добавить поля в модельку relation для фильтров настроек которые задает юзера
-                new_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies  # типа result_age_filter_check, result_children_filter_check
-                if new_percent > 0:                                                                                     # С булевым значениями и проверять валидность отношений 
-                    relation.percent_compatibility = new_percent                                                  # например если хоть в одном чеке будет False то отношения
-                    await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
-                    await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
-                else:
-                    relation.percent_compatibility = 0
-            await relation.save()
-            await clear_cache_relation(tg_id_1=user.tg_id, tg_id_2=target_user.tg_id)
-            # else:
-                
 
 
 async def recalculation_purp(user: models.UserModel):

@@ -1,6 +1,7 @@
 from ctypes import Union
 from datetime import datetime
 from typing import Any, List
+from data.config import PHOTO_TYPES, VIDEO_TYPES
 from loader import dp
 from aiogram import types
 from models import models
@@ -102,12 +103,12 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
     relation = await user_view.relation
     text += f"Процент совместимости: {relation.percent_compatibility}%"
 
-    photo_types = ('jpeg', 'jpg', "webm", "png")
-    video_types = ("mp4", "avi")
+    # photo_types = ('jpeg', 'jpg', "webm", "png")
+    # video_types = ("mp4", "avi")
     
-    if avatar.file_type.lower() in photo_types:
+    if avatar.file_type.lower() in PHOTO_TYPES:
         await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count)) 
-    elif avatar.file_type.lower() in video_types:
+    elif avatar.file_type.lower() in VIDEO_TYPES:
         await call.message.answer_video(video=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count))
 
 
@@ -157,11 +158,11 @@ async def mutal_likes_handler(call: types.CallbackQuery):
 
     text += f"Процент совместимости: {relation.percent_compatibility}%"
 
-    photo_types = ('jpeg', 'jpg', "webm", "png")
-    video_types = ("mp4", "avi")
+    # photo_types = ('jpeg', 'jpg', "webm", "png")
+    # video_types = ("mp4", "avi")
     await call.message.delete()
-    if avatar.file_type.lower() in photo_types:
+    if avatar.file_type.lower() in PHOTO_TYPES:
         await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await mutal_likes_keyboard(offset=offset)) 
-    elif avatar.file_type.lower() in video_types:
+    elif avatar.file_type.lower() in VIDEO_TYPES:
         await call.message.answer_video(video=avatar.file_id, caption=text, reply_markup=await mutal_likes_keyboard(offset=offset))
 

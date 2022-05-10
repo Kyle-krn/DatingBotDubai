@@ -1,3 +1,4 @@
+from handlers.calculation_relations.relations_handlers import check_age
 from keyboards.inline.inline_keyboards import one_button_keyboard
 from loader import dp
 from aiogram import types
@@ -8,7 +9,7 @@ from datetime import datetime, date
 from models import models
 from .hobbies_handlers import set_hobbies_state
 from .views_self_profile_handlers import profile_handler
-from handlers.calculation_relations.recalculation_relations import recalculation_age
+from handlers.calculation_relations.recalculation_relations import recalculation_int
 from tortoise.queryset import Q
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'bday')
@@ -56,6 +57,6 @@ async def input_bday_handler(message: types.Message, state: FSMContext):
         return await set_hobbies_state(message)
     else:
         if old_age != age:
-            await recalculation_age(user=user, user_age=age)
+            await recalculation_int(user=user, check_func=check_age, attr_name='percent_age')
         return await profile_handler(message)
     

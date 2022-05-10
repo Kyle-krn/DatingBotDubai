@@ -1,4 +1,5 @@
 from datetime import datetime
+from data.config import PHOTO_TYPES, VIDEO_TYPES
 from keyboards.inline.inline_keyboards import verification_keyboards
 from models import models
 from loader import bot
@@ -9,9 +10,6 @@ from tortoise.queryset import Q
 
 async def send_new_registration_in_chanel(user: models.UserModel, old: bool = False):
     avatar = await user.avatar
-    photo_types = ('jpeg', 'jpg', "webm", "png")
-    video_types = ("mp4", "avi")
-    # print(avatar.file_type.lower())
     text = ""
     if old:
         text += f"<b>Новая фотография у пользвателя #{user.id}</b>\n\n"
@@ -46,9 +44,9 @@ async def send_new_registration_in_chanel(user: models.UserModel, old: bool = Fa
     text += ", ".join([i.title_purp for i in await user.purp_dating.all()]) + "\n"
     # text += f"<b>Search radius</b> - {user.search_radius} km"
     if avatar:
-        if avatar.file_type.lower() in photo_types:
+        if avatar.file_type.lower() in PHOTO_TYPES:
             await bot.send_photo(-1001732505124, photo=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
-        elif avatar.file_type.lower() in video_types:
+        elif avatar.file_type.lower() in VIDEO_TYPES:
             await bot.send_video(-1001732505124, video=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
     else: 
         await bot.send_photo(-1001732505124, photo="https://www.etexstore.com/wp-content/plugins/all-in-one-seo-pack/images/default-user-image.png", caption=text, reply_markup=await verification_keyboards(user.id))
@@ -67,7 +65,7 @@ async def verification_user(call: types.CallbackQuery):
 
 
 async def calculation_new_user(user: models.UserModel):
-    verification_user_list = await models.UserModel.filter(Q(ban=False)).exclude(id=user.id)
+    verification_user_list = await models.UserModel.filter(Q(ban=False) & Q(end_registration=True)).exclude(id=user.id)
     # print(verification_user_list)
     purp_friend = await models.PurposeOfDating.get(id=1)
     purp_sex = await models.PurposeOfDating.get(id=2)

@@ -1,6 +1,7 @@
 
 from datetime import date
-from handlers.calculation_relations.recalculation_relations import recalculation_age
+from handlers.calculation_relations.recalculation_relations import recalculation_int
+from handlers.calculation_relations.relations_handlers import check_age
 from handlers.search_settings.view_settings_handler import settings_handler
 from keyboards.inline.inline_keyboards import one_button_keyboard
 from loader import dp
@@ -43,6 +44,6 @@ async def set_partner_gender_handler(message: types.Message, state: FSMContext):
         await settings.save()
         today = date.today()
         user_age = int((today - user.birthday).total_seconds() / 60 / 60 / 24 / 365)
-        await recalculation_age(user=user, user_age=user_age)
+        await recalculation_int(user=user, check_func=check_age, attr_name='percent_age')
     await state.finish()
     return await settings_handler(message)
