@@ -5,6 +5,7 @@ from keyboards.inline.user_settings_keyboards import purp_keyboard
 from handlers.calculation_relations.recalculation_relations import recalculation_purp
 from tortoise.queryset import Q
 from .views_self_profile_handlers import profile_handler
+from aiogram import exceptions
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_purp')
 async def purp_handler(call: types.CallbackQuery, change: bool = None):
@@ -26,7 +27,10 @@ async def purp_handler(call: types.CallbackQuery, change: bool = None):
                                    callback_for_next=callback_for_next)
     if isinstance(call, types.Message):
         return await call.answer(text, reply_markup=keyboard)
-    await call.message.delete()
+    try:
+        await call.message.delete()
+    except exceptions.MessageToDeleteNotFound:
+        pass
     return await call.message.answer(text, reply_markup=keyboard)
 
 

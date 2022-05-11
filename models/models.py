@@ -63,6 +63,7 @@ class UserSuccesPayments(Model):
     count_mount_prem: int = fields.IntField(null=True) 
     superlike_count: int = fields.IntField(null=True)
 
+
 class UsersRelations(Model):
     '''Процент совместимости междую юзерами'''
     id: int = fields.IntField(pk=True)
@@ -134,11 +135,12 @@ class MutualLike(Model):
 class AvatarModel(Model):
     '''Аватар'''
     id: int = fields.IntField(pk=True)
-    file_id: str = fields.CharField(max_length=255)
-    file_path: str = fields.CharField(max_length=255)
-    file_type: str = fields.CharField(max_length=40)
-    photo_bool: bool = fields.BooleanField()
+    file_id: str = fields.CharField(max_length=255, null=True)
+    file_path: str = fields.CharField(max_length=255, null=True)
+    file_type: str = fields.CharField(max_length=40, null=True)
+    photo_bool: bool = fields.BooleanField(null=True)
     user: fields.OneToOneRelation[UserModel] = fields.OneToOneField("models.UserModel", related_name="avatar")
+
     # class Meta:
     #     table = "user_avatar"
 

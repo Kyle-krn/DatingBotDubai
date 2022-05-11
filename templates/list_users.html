@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="table-responsive">
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Username</th>
+        <th scope="col">Name</th>
+        <th scope="col">Premium</th>
+        <th scope="col">Ban</th>
+        <th scope="col">Verification</th>
+        <th scope="col">Profile</th>
+      </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td scope="row">{{user.id}}</td>
+                <td>{{user.username}}</td>
+                <td>{{user.name}}</td>
+                <td>{{user.premium}}</td>
+                <td>{{user.ban}}</td>
+                <td>{{user.verification}}</td>
+                <td><a class="btn btn-secondary btn-sm" href="/get_user/{{user.id}}" role="button">Подробнее</a></td>
+            </tr>
+            {% endfor %}  
+        </tbody>
+    </table>
+</div>
+</div>
+{% endblock %}

@@ -16,4 +16,6 @@ async def bot_start(message: types.Message):
                                       tg_username=message.chat.username,
                                       name=message.chat.full_name)
         await models.UserSearchSettings.create(user=user)
+        await models.AvatarModel.create(user=user)
         await message.answer(f"Укажите Ваш пол:", reply_markup=await gender_keyboard())
+        

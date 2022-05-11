@@ -37,8 +37,10 @@ async def settings_handler(message: types.Message):
         settings.children_min_age = 0 if settings.children_min_age is None else settings.children_min_age 
         settings.children_max_age = 18 if settings.children_max_age is None else settings.children_max_age
         text += f"Возр. Диапазон детей: {settings.children_min_age} - {settings.children_max_age} лет\n"
+    interest_place_user = await user.interest_place_companion.all()
+    text_place = ", ".join([i.title_interest for i in interest_place_user])
+    text += "Местоположение пары: " + text_place + '\n'
     await message.answer(text=text, reply_markup=await settings_search_keyboard())
-
 
 
 

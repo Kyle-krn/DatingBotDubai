@@ -20,7 +20,6 @@ redis_cash_1 = redis.Redis(db=1)
 async def search_dating(message: types.Message, last_view_id: int = None):
     # photo_types = ('jpeg', 'jpg', "webm", "png")
     # video_types = ("mp4", "avi")
-
     user = await models.UserModel.get(tg_id=message.chat.id)
     if user.end_registration is False:
         return await message.answer("Вы не закончили регистрацию")

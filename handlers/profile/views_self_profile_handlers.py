@@ -18,7 +18,7 @@ async def profile_handler(message: types.Message):
     avatar = await user.avatar
     if not avatar:
         photo = types.input_file.InputFile("static/guest.png")
-        return await message.answer_photo(photo=photo, reply_markup=await main_profile_keyboard())
+        return await message.answer_photo(photo=photo, reply_markup=await main_profile_keyboard(dubai=user.dubai))
 
     zodiak = await zodiac_sign(user.birthday)
 
@@ -44,6 +44,6 @@ async def profile_handler(message: types.Message):
     # photo_types = ('jpeg', 'jpg', "webm", "png")
     # video_types = ("mp4", "avi")
     if avatar.file_type.lower() in PHOTO_TYPES:
-        await message.answer_photo(photo=avatar.file_id,caption=text, reply_markup=await main_profile_keyboard())
+        await message.answer_photo(photo=avatar.file_id,caption=text, reply_markup=await main_profile_keyboard(dubai=user.dubai))
     elif avatar.file_type.lower() in VIDEO_TYPES:
-        await message.answer_video(video=avatar.file_id, caption=text, reply_markup=await main_profile_keyboard())
+        await message.answer_video(video=avatar.file_id, caption=text, reply_markup=await main_profile_keyboard(dubai=user.dubai))

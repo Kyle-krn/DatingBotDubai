@@ -14,8 +14,9 @@ HOST = env.str('HOST')
 PORT = env.str('PORT')
 DATABASE = env.str('DATABASE')
 
-WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"
-WEBHOOK_URL = env.str('WEBHOOK_HOST') + WEBHOOK_PATH
+WEBHOOK_PATH = f"/bot"
+WEBHOOK_HOST = env.str('WEBHOOK_HOST')
+WEBHOOK_URL = WEBHOOK_HOST + WEBHOOK_PATH
 
 POSTGRES_URI = f"postgres://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
 
@@ -33,3 +34,5 @@ TORTOISE_ORM = {
 
 PHOTO_TYPES = ('jpeg', 'jpg', "webm", "png")
 VIDEO_TYPES = ("mp4", "avi")
+
+DEBUG_CHANNEL_ID = env.int('DEBUG_CHANNEL_ID')

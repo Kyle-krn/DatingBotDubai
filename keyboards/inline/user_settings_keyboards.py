@@ -4,14 +4,16 @@ from tortoise import List
 from models.models import DatingInterestPlace, Hobbies, UserModel, PurposeOfDating
 
 
-async def main_profile_keyboard():
+async def main_profile_keyboard(dubai: bool):
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(types.InlineKeyboardButton(text='📷 Фото',callback_data='change_ava:'),    
                  types.InlineKeyboardButton(text='Увлечения',callback_data='change_hobbies:'))
+    if dubai is False:
+        keyboard.add(types.InlineKeyboardButton(text='Семейное положение',callback_data='change_marriage:'),    
+                    types.InlineKeyboardButton(text='Переезд в Дубаи',callback_data='change_remove_dubai:'))
+    elif dubai is True:
+        keyboard.add(types.InlineKeyboardButton(text='Семейное положение',callback_data='change_marriage:'))
 
-    keyboard.add(types.InlineKeyboardButton(text='Семейное положение',callback_data='change_marriage:'),    
-                 types.InlineKeyboardButton(text='Переезд в Дубаи',callback_data='change_remove_dubai:'))
-    
     keyboard.add(types.InlineKeyboardButton(text='Возраст',callback_data='change_bday:'),    #change_marriage
                  types.InlineKeyboardButton(text='Город',callback_data='change_place:'))
 
@@ -50,7 +52,7 @@ async def dubai_answer_keyboard(remove_in_dubai: bool = None, callback: str = 'r
     return keyboard
 
 
-async def companion_dubai_keyboard(user: UserModel):
+async def companion_dubai_keyboard(user: UserModel, callback_prefix: str = ''):
     keyboard = types.InlineKeyboardMarkup()
     interest_user = await user.interest_place_companion.all()
     interestings = await DatingInterestPlace.all()
@@ -58,9 +60,12 @@ async def companion_dubai_keyboard(user: UserModel):
         text = interest.title_interest
         if interest in interest_user:
             text = "✅ " + text
-        keyboard.add(types.InlineKeyboardButton(text=text, callback_data=f"companion_dubai:{interest.id}"))
+        keyboard.add(types.InlineKeyboardButton(text=text, callback_data=f"{callback_prefix}companion_dubai:{interest.id}"))
     if len(interest_user) > 0:
-        keyboard.add(types.InlineKeyboardButton(text="Далее", callback_data="bday:"))
+        callback = 'bday:'
+        if callback_prefix == 'c_':
+            callback = 'back_settings:'
+        keyboard.add(types.InlineKeyboardButton(text="Далее", callback_data=callback))
     return keyboard
 
 
@@ -135,7 +140,8 @@ async def settings_search_keyboard():
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(types.InlineKeyboardButton(text="Пол", callback_data="settings_gender:"),
                 types.InlineKeyboardButton(text="Возраст", callback_data="settings_age:"))
-    keyboard.add(types.InlineKeyboardButton(text="Дети", callback_data="settings_children:"))
+    keyboard.add(types.InlineKeyboardButton(text="Дети", callback_data="settings_children:"),
+                types.InlineKeyboardButton(text="Местоположение пары", callback_data="settings_companion_dubai:"))
     return keyboard
 
 
