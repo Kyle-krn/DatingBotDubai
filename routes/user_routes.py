@@ -1,14 +1,15 @@
 from models import models
 from tortoise.queryset import Q
-from fastapi import Form, Request
+from fastapi import Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import APIRouter
 from loader import templates
+from routes.login_routes import get_current_username
 user_router = APIRouter()
 
 
 @user_router.get("/", response_class=HTMLResponse)
-async def list_user(request: Request, verif: bool = False, username: str = None):
+async def list_user(request: Request, verif: bool = False, username: str = None, log: str = Depends(get_current_username)):
     if verif is True:
         users = await models.UserModel.filter(Q(verification=False) & Q(ban=False)).order_by('-last_verification_time', 'id')
     
@@ -32,7 +33,7 @@ async def list_user(request: Request, verif: bool = False, username: str = None)
 
 
 @user_router.get("/get_user/{id}", response_class=HTMLResponse)
-async def test(request: Request, id: int):
+async def test(request: Request, id: int, log: str = Depends(get_current_username)):
     user = await models.UserModel.get(id=id)
     avatar = await user.avatar
     data = {"id": user.id,
@@ -91,14 +92,14 @@ async def test(request: Request, id: int):
     return templates.TemplateResponse("item.html", {"request": request, "user": data, "photo_bool": avatar.photo_bool, "hobbies": hobbies})
 
 @user_router.get("/ban_user/{id}", response_class=RedirectResponse)
-async def ban_user_handler(request: Request, id: int):
+async def ban_user_handler(request: Request, id: int, log: str = Depends(get_current_username)):
     user = await models.UserModel.get(id=id)
     user.ban = not user.ban
     await user.save()
     return f"/get_user/{id}"
 
 @user_router.get("/verif_user/{id}", response_class=RedirectResponse)
-async def verif_user(request: Request, id: int):
+async def verif_user(request: Request, id: int, log: str = Depends(get_current_username)):
     user = await models.UserModel.get(id=id)
     user.verification = not user.verification
     await user.save()
@@ -108,7 +109,7 @@ async def verif_user(request: Request, id: int):
 import starlette.status as status
 
 @user_router.post("/del_hobbie/{id}")
-async def del_hobbie_handler(request: Request, id: int, hobbies: list = Form(...)):
+async def del_hobbie_handler(request: Request, id: int, hobbies: list = Form(...), log: str = Depends(get_current_username)):
     # body = await request.json()
     user = await models.UserModel.get(id=id)
     for hobbie in hobbies:
