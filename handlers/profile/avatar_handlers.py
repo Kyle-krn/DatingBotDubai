@@ -69,11 +69,11 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         file_id = message.document.file_id
         file_type = message.document.file_name.split('.')[-1]
         file_path = full_path + f'avatar.{file_type}'
-        if file_type.islower() not in PHOTO_TYPES and file_type.islower() not in VIDEO_TYPES:
+        if file_type.lower() not in PHOTO_TYPES and file_type.lower() not in VIDEO_TYPES:
             return await message.answer("Разрешенные типы данных: jpeg, webm, png, mp4, avi")
-        elif file_type.islower() in PHOTO_TYPES:
+        elif file_type.lower() in PHOTO_TYPES:
             photo_bool = True
-        elif file_type.islower() in VIDEO_TYPES:
+        elif file_type.lower() in VIDEO_TYPES:
             photo_bool = False
         await message.document.download(BASE_DIR + file_path)
 
