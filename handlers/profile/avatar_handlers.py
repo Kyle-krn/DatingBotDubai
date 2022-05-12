@@ -39,7 +39,7 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
     user = await models.UserModel.get(tg_id=message.chat.id)
     user_data = await state.get_data()
     static_path = "/static/"
-    folder_path = f'/avatar_telegram/{user.id}/'
+    folder_path = f'avatar_telegram/{user.id}/'
     full_path = static_path + folder_path
     if os.path.exists(BASE_DIR + "/static/avatar_telegram/") is False:
         os.mkdir(BASE_DIR + "/static/avatar_telegram/")
