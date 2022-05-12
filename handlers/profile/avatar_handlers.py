@@ -42,6 +42,10 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
     static_path = "static/"
     folder_path = f'avatar_telegram/{user.id}/'
     full_path = static_path + folder_path
+    
+    if os.path.exists("static/avatar_telegram/") is False:
+        os.mkdir("static/avatar_telegram/")
+
     if os.path.exists(full_path) is False:
         os.mkdir(full_path)
 
