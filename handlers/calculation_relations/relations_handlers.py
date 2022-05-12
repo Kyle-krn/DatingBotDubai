@@ -86,11 +86,12 @@ async def check_distance(user: models.UserModel,
     tip = await target_user.interest_place_companion.all()
 
     # if int(distance) > allow_distance:
+                   
     condition_1 = (ip4 in tip and ip5 not in tip and ip6 not in tip) or \
                     (ip4 in tip and ip5 in tip and ip6 not in tip) or \
                     (ip4 in tip and ip5 in tip and ip6 in tip) or \
                     (ip4 in tip and ip5 not in tip and ip6 in tip)
-
+                    
     condition_2 = (ip4 not in tip and ip5 in tip and ip6 not in tip) or \
                     (ip4 in tip and ip5 in tip and ip6 not in tip) or \
                     (ip4 in tip and ip5 in tip and ip6 in tip) or \
@@ -109,7 +110,9 @@ async def check_distance(user: models.UserModel,
     tar_place_1 = target_user.dubai is True
 
 
-    if (user.dubai and ip4 in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_1_and_2 and condition_1):
+    if (user.dubai and ip4 in ipu) and condition_1:
+        return True
+    elif (user.dubai and ip4 in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_1_and_2 and condition_1):
         '''1,4,5                            1,4; 1,4,5; 1,4,5,6 ; 1,4,6; 2,4; 2,4,5; 2,4,5,6 ; 2,4,6 '''
         return True
     elif (user.dubai and ip4 in ipu and ip5 in ipu and ip6 in ipu) and (condition_1):
