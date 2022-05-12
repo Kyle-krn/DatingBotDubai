@@ -7,13 +7,9 @@ from .city_handlers import city_set_state_handler
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'gender')
 async def gender_handler(call: types.CallbackQuery):
-    try:
-        user = await models.UserModel.get(tg_id=call.message.chat.id)
-    except Exception:
-        print("Пошел нахуй отправлено")
-        print(call.message.chat.id)
-        print(call.message.chat.username)
-        await call.message.answer("Иди нахуй, хватит трогать тестового бота.")
+    user = await models.UserModel.get(tg_id=call.message.chat.id)
+
+
     gender = call.data.split(':')[1]
     if gender == 'male':
         user.male = True

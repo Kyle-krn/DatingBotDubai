@@ -48,7 +48,6 @@ class BanMiddleware(BaseMiddleware):
         try:
             user = await models.UserModel.get(tg_id=message.chat.id)
         except Exception as e:
-            print(e)
             return
 
         if user.tg_username != message.chat.username:

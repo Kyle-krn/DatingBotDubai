@@ -23,16 +23,9 @@ async def test_group(message: types.Message):
 
     tar_user = await UserModel.get_or_none(id=128)
     tar_settings = await tar_user.search_settings
-    # print(settings.__dict__)
-    print(await user.interest_place_companion.all())
-    print(await tar_user.interest_place_companion.all())
     year_now = datetime.now().year
     old_user = year_now - user.birthday.year
 
     old_tar = year_now - tar_user.birthday.year
-    print(f"{user}: {user.male} -> {settings.male}")
-    print(f"{tar_user}: {tar_user.male} -> {tar_settings.male}")
     x = await check_age(old_user=old_user, user=user, target_user=tar_user)
-    print(x)
     x = await check_age(old_user=old_tar, user=tar_user, target_user=user)
-    print(x)

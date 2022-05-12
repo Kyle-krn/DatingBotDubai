@@ -89,8 +89,7 @@ async def calculation_new_user(user: models.UserModel):
                                                                                                                                      interest_place_5=interest_place_5, 
                                                                                                                                      interest_place_6=interest_place_6,
                                                                                                                                      old_user=old_user)
-        print(percent, percent_age, percent_children, percent_hobbies, result_distance_check, result_purp_check, result_gender_check)
-        print(f"User {user.tg_username} -> User {target_user.tg_username} = {percent}%")
+       
         relation = await models.UsersRelations.get_or_none(Q(Q(user=user) & Q(target_user=target_user)) | Q(Q(target_user=user) & Q(user=target_user)))
         if not relation:
             relation = await models.UsersRelations.create(user=user, 
@@ -106,4 +105,3 @@ async def calculation_new_user(user: models.UserModel):
         if percent > 0:
             await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
             await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
-    print('\n')

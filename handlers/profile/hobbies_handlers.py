@@ -38,7 +38,6 @@ async def set_hobbies_state(call: types.CallbackQuery):
 async def input_hobbies_handler(message: types.Message, state: FSMContext):
     hobbies = [i.strip().capitalize() for i in message.text.split(',')]
     user_data = await state.get_data()
-    print(user_data)
     # await state.finish()
     old_msg_id: types.Message = user_data['msg_id']
     user = await models.UserModel.get(tg_id=message.chat.id)

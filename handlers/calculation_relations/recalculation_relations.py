@@ -68,7 +68,6 @@ async def recalculation_location(user: models.UserModel):
     interest_place_5 = await models.DatingInterestPlace.get(id=2)
     interest_place_6 = await models.DatingInterestPlace.get(id=3)
     relations = await models.UsersRelations.filter(Q(user=user) | Q(target_user=user))
-    print(relations)
     for relation in relations:
 
         target_user = await get_target_user_from_relation(user=user, relation=relation)
@@ -79,7 +78,6 @@ async def recalculation_location(user: models.UserModel):
                              interest_place_4=interest_place_4,
                              interest_place_5=interest_place_5,
                              interest_place_6=interest_place_6)
-        print(f"{user} -> {target_user} -> {reslut_distance_check}")
         if relation.result_distance_check == True and reslut_distance_check == False:
             relation.percent_compatibility = 0
             relation.result_distance_check = False
@@ -135,7 +133,6 @@ async def recalculation_purp(user: models.UserModel):
                 # await relation.save()
             await relation.save()
             await clear_cache_relation(tg_id_1=user.tg_id, tg_id_2=target_user.tg_id)
-        print(f"{user} -> {target_user} ----> {result_purp_check}")
 
 
 

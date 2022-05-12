@@ -9,9 +9,7 @@ from timezonefinder import TimezoneFinder
 from pytz import timezone, utc
 
 tf = TimezoneFinder()
-# latitude, longitude = 52.5061, 13.358
 
-# pp = PrettyPrinter(indent=4)
 
 async def get_location_by_city(place: str):
     place = urllib.parse.quote(place)
@@ -19,7 +17,6 @@ async def get_location_by_city(place: str):
               'types': ','.join(['country', 'place'])}
     async with aiohttp.request('GET', f"https://api.mapbox.com/geocoding/v5/mapbox.places/{str(place)}.json", params=params) as response:
         resp_city = await response.json()
-        # pp.pprint(resp_city)
     try:
         center_city = resp_city['features'][0]['center']
         tmz = timezone(tf.timezone_at(lng=center_city[0], lat=center_city[1]))

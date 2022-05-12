@@ -47,7 +47,6 @@ async def settings_companion_place_hanlder(call: types.CallbackQuery):
     prefix = ''
     if call.data.split(':')[0] == 'settings_companion_dubai':
         prefix = "c_"
-    print(prefix)
     return await call.message.edit_text("Укажите с кем вы заинтересованы в знакомствах?", reply_markup=await companion_dubai_keyboard(user, prefix))
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'companion_dubai')

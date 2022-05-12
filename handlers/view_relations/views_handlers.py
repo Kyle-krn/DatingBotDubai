@@ -56,7 +56,6 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
     queryset_cache = redis_cash_2.get(str(call.message.chat.id))
     if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
         your_likes = [i['id'] for i in await rowsql_likes(user.id)]
-        print(your_likes)
         # user_views = []
         # query = Q(target_user=user) & Q(like=True) & Q(user__verification=True) & Q(user__ban=False)
         # targets_like_views = models.UserView.filter(query).order_by('dislike', 'count_view', '-relation__percent_compatibility')

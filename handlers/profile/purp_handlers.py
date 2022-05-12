@@ -21,7 +21,6 @@ async def purp_handler(call: types.CallbackQuery, change: bool = None):
     elif change is True or call.data.split(':')[0] == 'change_purp':
         callback_for_next = "change_purp_quit"
         callback_for_purp = "change_val_purp"
-    print(callback_for_purp)
     keyboard = await purp_keyboard(user_purp=await user.purp_dating.all(), 
                                    callback_for_purp=callback_for_purp, 
                                    callback_for_next=callback_for_next)

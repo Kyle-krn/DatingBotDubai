@@ -28,7 +28,6 @@ async def set_partner_gender_handler(message: types.Message, state: FSMContext):
         min = int(age[0].strip())
         max = int(age[1].strip())
     except Exception as e:
-        print(e)
         return await message.answer("Не могу распознать возраст, попробуйте снова", reply_markup=await one_button_keyboard(text="Назад", callback="cancel_state_settings"))
     if min <0 or max <0:
         return await message.answer("Возраст не может быть отрицательным", reply_markup=await one_button_keyboard(text="Назад", callback="cancel_state_settings"))

@@ -12,12 +12,10 @@ from fastapi_login import LoginManager #Loginmanager Class
 import urllib.parse
 
 def send_log_channel(msg):
-    print('jere')
     while '<' in msg:
         msg = msg.replace('', '<')
     while '>' in msg:
         msg = msg.replace('', '>')
-    print(msg)
     x = requests.get(f'https://api.telegram.org/bot{config.BOT_TOKEN}/sendMessage?chat_id=@erbrtnytyumynty&text={urllib.parse.quote(msg)}') 
     # await bot.send_message(-config.DEBUG_CHANNEL_ID, str(msg), parse_mode=types.ParseMode.HTML)
 

@@ -60,7 +60,6 @@ async def spam_motivation_message(bot: Bot):
 
 
 async def scheduler(bot):
-    print("i")
     aioschedule.every(1).hours.do(spam_motivation_message, bot)
     aioschedule.every().day.at("12:00").do(update_likes)
     while True:

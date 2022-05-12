@@ -127,7 +127,6 @@ async def mutal_like_func(message: types.Message,
                           target_user: models.UserModel, 
                           relation: models.UsersRelations):
     
-    print(user, target_user)
     avatar_user = await user.avatar
     avatar_tar = await target_user.avatar
     text_1 = "У вас новая пара!\n\n"

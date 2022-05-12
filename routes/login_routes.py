@@ -46,5 +46,4 @@ def test(request: Request):
      new_header = MutableHeaders(request._headers)
      new_header["xxxxx"]="XXXXX"
      request._headers = new_header
-     print(request.headers)
      return {}

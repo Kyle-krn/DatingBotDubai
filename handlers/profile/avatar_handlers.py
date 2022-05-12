@@ -31,7 +31,6 @@ async def send_document_handler(call: types.CallbackQuery):
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'back_send_ava', state=ProfileSettingsState.avatar)
 async def back_send_document_handler(call: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    print(user_data)
     await call.message.edit_text(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(user_data['status_user']))
 
 

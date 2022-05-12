@@ -54,7 +54,6 @@ async def set_value_children_age_hanlder(message: types.Message, state: FSMConte
             min = int(age[0].strip())
             max = int(age[1].strip())
     except Exception as e:
-        print(e)
         return await message.answer("Не могу распознать возраст, попробуйте снова")
     
     if message.text.strip() != '0':
