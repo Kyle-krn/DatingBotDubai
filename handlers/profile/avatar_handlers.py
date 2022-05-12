@@ -54,14 +54,14 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         file_type = message.video.file_name.split('.')[-1]
         file_path = full_path + f'avatar.{file_type}'
         photo_bool=False
-        await message.video.download(file_path)
+        await message.video.download(BASE_DIR + file_path)
 
     elif message.photo:
         file_id = message.photo[-1].file_id
         file_path = full_path + "avatar.jpg"
         photo_bool=True
         file_type="jpg"
-        await message.photo[-1].download(file_path)
+        await message.photo[-1].download(BASE_DIR + file_path)
 
     elif message.document:
         if (message.document.file_size / 1024 / 1024) > 10:
@@ -75,7 +75,7 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
             photo_bool = True
         elif file_type.islower() in VIDEO_TYPES:
             photo_bool = False
-        await message.document.download(file_path)
+        await message.document.download(BASE_DIR + file_path)
 
     avatar = await models.AvatarModel.get_or_none(user=user)
     if not avatar:
