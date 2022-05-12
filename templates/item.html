@@ -8,12 +8,12 @@
     <div class="text-center">
       
       {% if photo_bool == False %}
-          <video width="400" height="300" controls="controls" poster=/{{user.file_path}}>
-            <source src=/{{user.file_path}} type='video/webm; codecs="vp8, vorbis"'>
+          <video width="400" height="300" controls="controls" poster={{user.file_path}}>
+            <source src={{user.file_path}} type='video/webm; codecs="vp8, vorbis"'>
             Тег video не поддерживается вашим браузером. 
           </video>
       {% elif photo_bool == True %}
-        <img src=/{{user.file_path}} alt={{user.tg_id}} width="70%">
+        <img src={{user.file_path}} alt={{user.tg_id}} width="70%">
       {% else %}
         {% endif %}
 
