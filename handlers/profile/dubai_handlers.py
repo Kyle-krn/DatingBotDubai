@@ -47,7 +47,7 @@ async def settings_companion_place_hanlder(call: types.CallbackQuery):
     prefix = ''
     if call.data.split(':')[0] == 'settings_companion_dubai':
         prefix = "c_"
-    return await call.message.edit_text("Укажите с кем вы заинтересованы в знакомствах?", reply_markup=await companion_dubai_keyboard(user, prefix))
+    return await call.message.edit_text("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user, prefix))
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'companion_dubai')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'c_companion_dubai')
@@ -61,7 +61,7 @@ async def add_companion_dubai_interest(call: types.CallbackQuery):
     else:
         await user.interest_place_companion.add(selected_interest)
     prefix = '' if call.data.split(':')[0] == 'companion_dubai' else 'c_'
-    await call.message.edit_text("Укажите с кем вы заинтересованы в знакомствах?", reply_markup=await companion_dubai_keyboard(user, prefix))
+    await call.message.edit_text("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user, prefix))
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'back_settings')

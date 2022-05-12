@@ -14,6 +14,7 @@ from tortoise import Tortoise
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "change_hobbies")
 async def set_hobbies_state(call: types.CallbackQuery):
     top_hobbies = await get_top_hobbies()
+    user = await models.UserModel.get(tg_id=call.message.chat.id)
     name_top_hobbies = []
     for item in top_hobbies[:10]:
         hobbie = await models.Hobbies.get(id=item['hobbies_id'])
@@ -30,12 +31,14 @@ async def set_hobbies_state(call: types.CallbackQuery):
     else:
         status_user="old"
         await call.message.delete()
-        msg = await call.message.answer(text, reply_markup=await skip_settings_keyboard(callback="skip_hobbie:"))
+        msg = await call.message.answer(text, reply_markup=await remove_hobbie_keyboard(status_user=status_user,hobbies_list=await user.hobbies.all()))
     await state.update_data(msg_id=msg.message_id, status_user=status_user, append_hobbie=False)
 
 
 @dp.message_handler(state=ProfileSettingsState.hobbies)
 async def input_hobbies_handler(message: types.Message, state: FSMContext):
+    if message.text in ["👥 Найти пару", "👤 Профиль", "💑 Симпатии", "⚙ Настройки", "💸 Тарифные планы", "🆘 Помощь"]:
+        return await message.answer("Нажмите продолжить что бы завершить ввод увлечений.")
     hobbies = [i.strip().capitalize() for i in message.text.split(',')]
     user_data = await state.get_data()
     # await state.finish()
@@ -50,19 +53,21 @@ async def input_hobbies_handler(message: types.Message, state: FSMContext):
     await bot.delete_message(chat_id=message.chat.id, message_id=old_msg_id)
     # await old_msg.delete()
     await user.hobbies.add(*list_hobbie)
-    user_status = user_data['status_user']
+    status_user = user_data['status_user']
     msg = await message.answer("Вы можете удалить хобби нажав на его название или прислать новые в том же формате, через запятую.", 
-                               reply_markup=await remove_hobbie_keyboard(hobbies_list=await user.hobbies.all()))
+                               reply_markup=await remove_hobbie_keyboard(status_user=status_user, hobbies_list=await user.hobbies.all()))
     await state.update_data(msg_id=msg.message_id, status_user=user_data['status_user'], append_hobbie=True)
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'remove_hobbie', state=ProfileSettingsState.hobbies)
-async def remove_hobbie_handler(call: types.CallbackQuery):
+async def remove_hobbie_handler(call: types.CallbackQuery, state: FSMContext):
     hobbie_id = call.data.split(':')[1]
     hobbie = await models.Hobbies.get(id=hobbie_id)
     user = await models.UserModel.get(tg_id=call.message.chat.id)
+    user_data = await state.get_data()
+    status_user = user_data['status_user']
     await user.hobbies.remove(hobbie)
-    await call.message.edit_text("Вы можете удалить хобби нажав на его название.", reply_markup=await remove_hobbie_keyboard(await user.hobbies.all()))
+    await call.message.edit_text("Вы можете удалить хобби нажав на его название.", reply_markup=await remove_hobbie_keyboard(status_user=status_user,hobbies_list=await user.hobbies.all()))
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'skip_hobbie', state=ProfileSettingsState.hobbies)
@@ -71,9 +76,11 @@ async def skip_hobbies_handler(call: types.CallbackQuery, state: FSMContext):
     
     await state.finish()
     if user_data['append_hobbie'] is False:
-        await call.answer("Вы не указали ваши увлечения.")
+        # await call.answer("Вы не указали ваши увлечения.")
+        pass
     else:
-        await call.answer("Успешно добавлено!")
+        # await call.answer("Успешно добавлено!")
+        pass
 
     if user_data['status_user'] == 'new':
         await marriage_handler(call)

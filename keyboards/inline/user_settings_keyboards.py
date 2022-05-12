@@ -75,12 +75,16 @@ async def skip_settings_keyboard(callback: str):
     return keyboard
 
 
-async def remove_hobbie_keyboard(hobbies_list: List[Hobbies]):
+async def remove_hobbie_keyboard(hobbies_list: List[Hobbies], status_user: str = 'new'):
     keyboard = types.InlineKeyboardMarkup()
     for hobbie in hobbies_list:
         keyboard.add(types.InlineKeyboardButton(text=hobbie.title_hobbie, callback_data=f"remove_hobbie:{hobbie.id}"))
-    keyboard.add(types.InlineKeyboardButton(text="Добавить увлечения", callback_data=f"skip_hobbie:"))
-    # keyboard.add(types.InlineKeyboardButton(text="Продолжить", callback_data=f"skip_hobbie:"))
+    if status_user == 'new':
+        text = "Перейти к следующему шагу"
+    elif status_user == 'old':
+        text = "Продолжить"
+    keyboard.add(types.InlineKeyboardButton(text=text, callback_data=f"skip_hobbie:"))
+    
     return keyboard
 
 

@@ -81,7 +81,7 @@ async def answer_city_handler(call: types.CallbackQuery, state: FSMContext):
             if user.dubai is False:
                 return await dubai_handler(call.message)
             else:
-                return await call.message.answer("Укажите с кем вы заинтересованы в знакомствах?", reply_markup=await companion_dubai_keyboard(user))
+                return await call.message.answer("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user))
     elif answer == 'no':
         await call.message.edit_text(text="Попробуйте снова", reply_markup=None)
 
@@ -124,7 +124,7 @@ async def geolocation_handler(message: types.Message, state: FSMContext):
         if user.dubai is False:
             return await dubai_handler(message)
         else:
-            return await message.answer("Укажите с кем вы заинтересованы в знакомствах?", reply_markup=await companion_dubai_keyboard(user))
+            return await message.answer("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user))
     
     # if not 'Dubai' in user.place:
     #     # return await message.answer("Планируете переезд в Дубаи?", reply_markup=await dubai_answer_keyboard())
