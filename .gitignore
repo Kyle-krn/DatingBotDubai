@@ -103,13 +103,13 @@ celerybeat.pid
 static/avatar_telegram
 # Environments
 .venv
-# */.env
-# env/
+*/.env
+env/
 venv/
 ENV/
 env.bak/
 venv.bak/
-
+.env
 # Spyder project settings
 .spyderproject
 .spyproject
