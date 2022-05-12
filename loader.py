@@ -1,4 +1,5 @@
 import asyncio
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from fastapi import FastAPI, Request
@@ -39,8 +40,8 @@ dp = Dispatcher(bot, storage=storage)
 db = Tortoise()
 
 app = FastAPI()
-from fastapi.responses import RedirectResponse,HTMLResponse
-
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+print(BASE_DIR)
 SECRET = "secret-key"
 
 templates = Jinja2Templates(directory="templates")

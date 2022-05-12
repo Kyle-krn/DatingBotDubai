@@ -1,6 +1,6 @@
 from datetime import datetime
 from data.config import PHOTO_TYPES, VIDEO_TYPES
-from loader import dp
+from loader import dp, BASE_DIR
 from models import models
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -38,15 +38,14 @@ async def back_send_document_handler(call: types.CallbackQuery, state: FSMContex
 async def upload_file_handler(message: types.Message, state: FSMContext):
     user = await models.UserModel.get(tg_id=message.chat.id)
     user_data = await state.get_data()
-    static_path = "static/"
-    folder_path = f'avatar_telegram/{user.id}/'
+    static_path = "/static/"
+    folder_path = f'/avatar_telegram/{user.id}/'
     full_path = static_path + folder_path
-    
-    if os.path.exists("static/avatar_telegram/") is False:
-        os.mkdir("static/avatar_telegram/")
+    if os.path.exists(BASE_DIR + "/static/avatar_telegram/") is False:
+        os.mkdir(BASE_DIR + "/static/avatar_telegram/")
 
-    if os.path.exists(full_path) is False:
-        os.mkdir(full_path)
+    if os.path.exists(BASE_DIR + full_path) is False:
+        os.mkdir(BASE_DIR + full_path)
 
     if message.video:
         if (message.video.file_size / 1024 / 1024) > 10:
