@@ -45,11 +45,11 @@ async def send_new_registration_in_chanel(user: models.UserModel, old: bool = Fa
     # text += f"<b>Search radius</b> - {user.search_radius} km"
     if avatar:
         if avatar.file_type.lower() in PHOTO_TYPES:
-            await bot.send_photo(-1001732505124, photo=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
+            await bot.send_photo(-1001732505124, photo=avatar.file_id, caption=text)
         elif avatar.file_type.lower() in VIDEO_TYPES:
-            await bot.send_video(-1001732505124, video=avatar.file_id, caption=text, reply_markup=await verification_keyboards(user.id))
+            await bot.send_video(-1001732505124, video=avatar.file_id, caption=text)
     else: 
-        await bot.send_photo(-1001732505124, photo="https://www.etexstore.com/wp-content/plugins/all-in-one-seo-pack/images/default-user-image.png", caption=text, reply_markup=await verification_keyboards(user.id))
+        await bot.send_photo(-1001732505124, photo="https://www.etexstore.com/wp-content/plugins/all-in-one-seo-pack/images/default-user-image.png", caption=text)
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'verification')

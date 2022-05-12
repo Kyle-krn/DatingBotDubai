@@ -8,42 +8,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 login_router = APIRouter()
 
 
-# DB = {"username":{"password":"qwertyuiop"}} # unhashed
-
-# @manager.user_loader
-# def load_user(username:str):
-#     user = DB.get(username)
-#     return user
-
-# @login_router.post("/auth/login")
-# def login(data: OAuth2PasswordRequestForm = Depends()):
-#     username = data.username
-#     password = data.password
-#     user = load_user(username)
-#     if not user:
-#         return RedirectResponse(url="/login",status_code=status.HTTP_302_FOUND)
-#     elif password != user['password']:
-#         return RedirectResponse(url="/login",status_code=status.HTTP_302_FOUND)
-#     access_token = manager.create_access_token(
-#         data={"sub":username}
-#     )
-#     resp = RedirectResponse(url="/",status_code=status.HTTP_302_FOUND)
-#     manager.set_cookie(resp,access_token)
-#     return resp
-
-# @login_router.get("/private")
-# def getPrivateendpoint(_=Depends(manager)):
-#     return "You are an authentciated user"
-
-# @login_router.get("/login",response_class=HTMLResponse)
-# def loginwithCreds(request:Request):
-#     return templates.TemplateResponse("login.html", {"request": request})
-    
-# # @app.get("/logout")
-# # def logout(response : Response):
-# #   response = RedirectResponse('/login', status_code= 302)
-# #   response.delete_cookie(key ='auth')
-# #   return response
 import secrets
 
 from fastapi import Depends, FastAPI, HTTPException, status

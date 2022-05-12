@@ -1,12 +1,37 @@
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from fastapi import FastAPI, Request
+import requests
 from tortoise import Tortoise
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
 import logging
 from data import config
 from fastapi.templating import Jinja2Templates
 from fastapi_login import LoginManager #Loginmanager Class
+import urllib.parse
+
+def send_log_channel(msg):
+    print('jere')
+    while '<' in msg:
+        msg = msg.replace('', '<')
+    while '>' in msg:
+        msg = msg.replace('', '>')
+    print(msg)
+    x = requests.get(f'https://api.telegram.org/bot{config.BOT_TOKEN}/sendMessage?chat_id=@erbrtnytyumynty&text={urllib.parse.quote(msg)}') 
+    # await bot.send_message(-config.DEBUG_CHANNEL_ID, str(msg), parse_mode=types.ParseMode.HTML)
+
+
+class TgLoggerHandler(logging.Handler):
+    def emit(self, record):
+        msg = self.format(record)
+        send_log_channel(msg)
+
+
+tg_handler = TgLoggerHandler()
+tg_handler.setLevel(logging.ERROR)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.CRITICAL)
 
 bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 storage = RedisStorage2('localhost', 6379, db=0, pool_size=10, prefix='state_aio')
@@ -19,25 +44,8 @@ app = FastAPI()
 from fastapi.responses import RedirectResponse,HTMLResponse
 
 SECRET = "secret-key"
-# To obtain a suitable secret key you can run | import os; print(os.urandom(24).hex())
 
-
-
-
-# class UnAn(BaseException):
-#     pass
-
-
-# manager = LoginManager(SECRET,token_url="/auth/login",custom_exception=UnAn, use_cookie=True)
-# manager.cookie_name = "auth"
 templates = Jinja2Templates(directory="templates")
-
-
-
-
-# @app.exception_handler(UnAn)
-# def auth_exception_handler(request: Request, exc):
-#     """
-#     Redirect the user to the login page if not logged in
-#     """
-#     return RedirectResponse(url='/login')
+logging.basicConfig(format=u'%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s',
+                    level=logging.INFO, handlers=[tg_handler, stream_handler] 
+                    )

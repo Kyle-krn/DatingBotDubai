@@ -101,8 +101,8 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         user.last_verification_time = datetime.utcnow()
         await user.save()
         text = "Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации."
-    # await send_new_registration_in_chanel(user, old=old)
-        await calculation_new_user(user)
+    
+    await send_new_registration_in_chanel(user, old=old)
     await message.answer(text, reply_markup=await main_keyboard())
 
 
