@@ -1,6 +1,6 @@
 from datetime import datetime
 from data.config import PHOTO_TYPES, VIDEO_TYPES
-from loader import dp, BASE_DIR
+from loader import dp, BASE_DIR, bot
 from models import models
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -66,17 +66,28 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
     elif message.document:
         if (message.document.file_size / 1024 / 1024) > 10:
             return await message.answer("Пожалуйста, загрузите файл до 10 Мб.")
-        file_id = message.document.file_id
+        # print(message.document)
+        # return await message.answer_document()
+        # file_id = message.document.file_id
         file_type = message.document.file_name.split('.')[-1]
         file_path = full_path + f'avatar.{file_type}'
         if file_type.lower() not in PHOTO_TYPES and file_type.lower() not in VIDEO_TYPES:
             return await message.answer("Разрешенные типы данных: jpeg, webm, png, mp4, avi")
-        elif file_type.lower() in PHOTO_TYPES:
+        
+        
+        await message.document.download(BASE_DIR + file_path)
+        
+        if file_type.lower() in PHOTO_TYPES:
             photo_bool = True
+            msg = await bot.send_photo(chat_id=390442593, photo=open(BASE_DIR + file_path, 'rb'))
+            file_id = msg.photo[-1].file_id
+
         elif file_type.lower() in VIDEO_TYPES:
             photo_bool = False
-        await message.document.download(BASE_DIR + file_path)
-
+            msg = await bot.send_video(chat_id=390442593, photo=open(BASE_DIR + file_path, 'rb'))
+            file_id = message.video.file_id
+        print(msg)
+    
     avatar = await models.AvatarModel.get_or_none(user=user)
     if not avatar:
         avatar = await models.AvatarModel.create(file_id=file_id,
