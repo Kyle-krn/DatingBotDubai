@@ -14,7 +14,6 @@ from tortoise import Tortoise
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "change_hobbies")
 async def set_hobbies_state(call: types.CallbackQuery):
     top_hobbies = await get_top_hobbies()
-    user = await models.UserModel.get(tg_id=call.message.chat.id)
     name_top_hobbies = []
     for item in top_hobbies[:10]:
         hobbie = await models.Hobbies.get(id=item['hobbies_id'])
@@ -26,9 +25,11 @@ async def set_hobbies_state(call: types.CallbackQuery):
            "Пример наиболее частых увлечений: "
     text += ", ".join(name_top_hobbies)
     if isinstance(call, types.Message):
+        user = await models.UserModel.get(tg_id=call.chat.id)
         msg = await call.answer(text, reply_markup=await skip_settings_keyboard(callback="skip_hobbie:"))
         status_user="new"
     else:
+        user = await models.UserModel.get(tg_id=call.message.chat.id)
         status_user="old"
         await call.message.delete()
         msg = await call.message.answer(text, reply_markup=await remove_hobbie_keyboard(status_user=status_user,hobbies_list=await user.hobbies.all()))
