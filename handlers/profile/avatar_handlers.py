@@ -86,7 +86,6 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
             photo_bool = False
             msg = await bot.send_video(chat_id=390442593, photo=open(BASE_DIR + file_path, 'rb'))
             file_id = message.video.file_id
-        print(msg)
     
     avatar = await models.AvatarModel.get_or_none(user=user)
     if not avatar:
