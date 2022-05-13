@@ -50,7 +50,8 @@ async def recalculation_int(user: models.UserModel,
         if old_percent != new_percent:
             setattr(relation, attr_name, new_percent)
             if relation.result_distance_check is True and relation.result_purp_check is True and relation.result_gender_check is True:
-                general_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies
+                percent_for_1_2_step = await models.DatingPercent.get(id=1)
+                general_percent = percent_for_1_2_step.percent + relation.percent_age + relation.percent_children + relation.percent_hobbies
                 if general_percent > 0:
                     relation.percent_compatibility = general_percent                                                  
                     await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
@@ -87,7 +88,8 @@ async def recalculation_location(user: models.UserModel):
         elif relation.result_distance_check == False and reslut_distance_check == True:
             relation.result_distance_check = True
             if relation.result_purp_check and relation.result_gender_check is True:
-                new_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies
+                percent_for_1_2_step = await models.DatingPercent.get(id=1)
+                new_percent = percent_for_1_2_step.percent + relation.percent_age + relation.percent_children + relation.percent_hobbies
                 if new_percent > 0:
                     relation.percent_compatibility = new_percent
                     await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
@@ -123,7 +125,8 @@ async def recalculation_purp(user: models.UserModel):
         if relation.result_purp_check is False and result_purp_check is True:
             relation.result_purp_check = True
             if relation.result_distance_check and relation.result_gender_check is True:
-                new_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies
+                percent_for_1_2_step = await models.DatingPercent.get(id=1)
+                new_percent = percent_for_1_2_step.percent + relation.percent_age + relation.percent_children + relation.percent_hobbies
                 if new_percent > 0:
                     relation.percent_compatibility = new_percent
                     await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
@@ -150,7 +153,8 @@ async def recalculation_by_gender(user: models.UserModel):
         elif relation.result_gender_check is False and result_gender_check is True:
             relation.result_gender_check = True
             if relation.result_distance_check and relation.result_purp_check:
-                new_percent = 30 + relation.percent_age + relation.percent_children + relation.percent_hobbies
+                percent_for_1_2_step = await models.DatingPercent.get(id=1)
+                new_percent = percent_for_1_2_step.percent + relation.percent_age + relation.percent_children + relation.percent_hobbies
                 if new_percent > 0:
                     relation.percent_compatibility = new_percent
                     await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)

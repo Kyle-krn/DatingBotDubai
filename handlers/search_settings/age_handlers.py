@@ -15,7 +15,8 @@ from aiogram.dispatcher import FSMContext
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'settings_age')
 async def partner_gender_handler(call: types.CallbackQuery):
     await SearchSettingsState.age.set()
-    await call.message.edit_text("Введите возраст от и до в формате 18-30", reply_markup=await one_button_keyboard(text="Назад", callback="cancel_state_settings"))
+    await call.answer()
+    await call.message.answer("Введите возраст от и до в формате 18-30", reply_markup=await one_button_keyboard(text="Назад", callback="cancel_state_settings"))
 
 
 

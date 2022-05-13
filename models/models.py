@@ -174,3 +174,7 @@ class Hobbies(Model):
     #     table = "hobbie"
 
 
+class DatingPercent(Model):
+    id: int = fields.IntField(pk=True)
+    discription: str = fields.CharField(max_length=255)
+    percent: int = fields.IntField()

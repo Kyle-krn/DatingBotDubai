@@ -10,7 +10,8 @@ from .settings_state import SearchSettingsState
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'settings_children')
 async def settings_children_handler(call: types.CallbackQuery):
-    await call.message.edit_text("Выберите один из пунктов", reply_markup=await settings_children_keyboard())
+    await call.answer()
+    await call.message.answer("Выберите один из пунктов", reply_markup=await settings_children_keyboard())
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'set_settings_children')
@@ -19,14 +20,19 @@ async def set_settings_children_handler(call: types.CallbackQuery):
     settings: models.UserSearchSettings = await user.search_settings
     answer = call.data.split(':')[1]
     if answer == 'yes':
+        text = "Есть"
+        await call.message.edit_text(text=f"Дети у партнера: {text}")
         return await set_children_age_state_handler(call)
     elif answer == 'no':
+        text = "Нет"
         value = False
     elif answer == 'none':
+        text = "Не важно"
         value = None
     elif answer == 'cancel':
-        await call.message.delete()
-        return await settings_handler(call.message)
+        return await call.message.delete()
+        # return await settings_handler(call.message)
+    await call.message.edit_text(text=f"Дети у партнера: {text}")
     if settings.children != value:
         settings.children = value
         settings.children_min_age = None
@@ -35,13 +41,13 @@ async def set_settings_children_handler(call: types.CallbackQuery):
         await recalculation_int(user=user,
                             check_func=check_children,
                             attr_name="percent_children")
-    await call.message.delete()
+    # await call.message.delete()
     return await settings_handler(call.message)
 
 
 async def set_children_age_state_handler(call: types.CallbackQuery):
     await SearchSettingsState.children_age.set()
-    await call.message.edit_text("Введите возраст детей от и до в формате 0-17, если возраст детей не важен, введите 0")
+    await call.message.answer("Введите возраст детей от и до в формате 0-17, если возраст детей не важен, введите 0")
 
 
 @dp.message_handler(state=SearchSettingsState.children_age)

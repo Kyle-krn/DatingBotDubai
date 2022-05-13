@@ -1,15 +1,6 @@
-from data.config import TORTOISE_ORM
-from tortoise import Tortoise, run_async
 from models import models
-import random
-import requests
-from pprint import PrettyPrinter
-from utils.utils_map import get_location_by_city
-pp = PrettyPrinter(indent=4)
-import math
 from geopy.distance import geodesic
-from datetime import date, datetime
-from tortoise.queryset import Q
+from datetime import datetime
 from typing import List
 
 
@@ -218,7 +209,8 @@ async def check_purp(user: models.UserModel,
 async def check_age(old_user: int,
                     user: models.UserModel,
                     target_user: models.UserModel) -> int:
-    percent_age = 20 # 20 сразу накидываем за возраст
+    percent_age = await models.DatingPercent.get(id=2)
+    percent_age = percent_age.percent # 20 сразу накидываем за возраст
     year_now = datetime.now().year
     user_settings: models.UserSearchSettings = await user.search_settings
     tar_user_settings: models.UserSearchSettings = await target_user.search_settings
@@ -235,7 +227,9 @@ async def check_age(old_user: int,
             return -1000
 
     difference = abs(old_user - (year_now-target_user.birthday.year))
-    return percent_age - difference * 2 # Вычисляем разницу возраста и отнимаем ее 
+    difference_percent = await models.DatingPercent.get(id=3)
+    difference = difference * difference_percent.percent
+    return percent_age - difference # Вычисляем разницу возраста и отнимаем ее 
 
 
 async def check_children(user: models.UserModel,
@@ -268,21 +262,27 @@ async def check_children(user: models.UserModel,
 
     if user.children and target_user.children:
         '''Накидываем проценты за детей'''
-        percent_children += 20
+        perecent_children = await models.DatingPercent.get(id=4)
+        percent_age_children = await models.DatingPercent.get(id=5)
+        percent_children += perecent_children.percent
         for user_children in user.children_age:
             for target_user_children in target_user.children_age:
                 difference_age_children = abs(user_children-target_user_children)
                 if difference_age_children <= 2:
-                    percent_children += 10 # Накидываем проценты за возраст детей
+                    percent_children += percent_age_children.percent # Накидываем проценты за возраст детей
+
     return percent_children
+
 
 
 async def check_hobbies(target_user: models.UserModel,
                         hobbies_user: List[models.Hobbies]) -> int:
+    perecent_hobbies_db = await models.DatingPercent.get(id=6)
+    
     percent_hobbies = 0
     for target_hobbie in await target_user.hobbies.all():
         if target_hobbie in hobbies_user:
-            percent_hobbies += 10
+            percent_hobbies += perecent_hobbies_db.percent
     return percent_hobbies
 
 

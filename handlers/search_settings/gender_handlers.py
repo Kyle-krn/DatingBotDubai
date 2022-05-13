@@ -17,7 +17,8 @@ async def partner_gender_handler(call: types.CallbackQuery):
     elif settings.male is None:
         text += "Неважно\n"
     text += "\nВыберите пол партнера"
-    await call.message.edit_text(text, reply_markup=await gender_keyboard("partner_gender"))
+    await call.answer()
+    await call.message.answer(text, reply_markup=await gender_keyboard("partner_gender"))
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'partner_gender')
@@ -27,15 +28,19 @@ async def set_partner_gender_handler(call: types.CallbackQuery):
     gender = call.data.split(':')[1]
     if gender == 'male':
         male = True
+        text = "Мужчина"
     elif gender == 'female':
         male = False
+        text = "Женщина"
     elif gender == 'none':
         male = None
+        text = "Не важно"
     if settings.male != male:
         settings.male = male
         await settings.save()
         await recalculation_by_gender(user)
-    await call.message.delete()
+    await call.message.edit_text(text=f"Выбранный пол партнера: {text}")
+    # await call.message.delete()
     return await settings_handler(call.message)
 
 

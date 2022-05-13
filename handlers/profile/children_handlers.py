@@ -42,10 +42,11 @@ async def childrens_age_handler(call: types.CallbackQuery):
     await state.update_data(status_user=status_user, 
                             old_value_children=old_value_children,
                             old_value_children_age=old_value_children_age)
+    await call.message.edit_text("Вы выбрали: Есть дети.")
     text = "Сколько лет вашим детям (если не хотите отвечать проставьте 0).\n"  \
             "Укажите количество лет для каждого ребенка через запятую."  \
             "Информация будет использоваться для поиска более подходящих вам знакомств."
-    await call.message.edit_text(text=text)
+    await call.message.answer(text=text)
 
 
 @dp.message_handler(state=ProfileSettingsState.children)
@@ -89,11 +90,11 @@ async def skip_children_hanlder(call: types.CallbackQuery):
     if call.data.split(':')[1] == 'no':
         user.children = False
         user.children_age = []
-        await call.answer("Вы выбрали: Нет детей")
+        await call.message.edit_text(text="Вы выбрали: Нет детей", reply_markup=None)
     else:
         user.children = None
         user.children_age = []
-        await call.answer("Вы выбрали: Не скажу")
+        await call.message.edit_text("Вы выбрали: Не скажу", reply_markup=None)
     await user.save()
     if call.data.split(':')[0] == 'skip_children':
         return await purp_handler(call, change=False)
@@ -102,7 +103,7 @@ async def skip_children_hanlder(call: types.CallbackQuery):
             await recalculation_int(user=user,
                             check_func=check_children,
                             attr_name="percent_children")
-        await call.message.delete()
+        # await call.message.delete()
         return await profile_handler(call.message)
 
 

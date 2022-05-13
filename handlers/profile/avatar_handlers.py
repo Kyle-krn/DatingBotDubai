@@ -18,8 +18,14 @@ async def send_document_handler(call: types.CallbackQuery):
     state = dp.get_current().current_state()
     if call.data.split(':')[0] == 'send_ava':
         status_user='new'
+        user = await models.UserModel.get(tg_id=call.message.chat.id)
+        user_purp = await user.purp_dating.all()
+        user_purp = [i.title_purp for i in user_purp]
+        user_purp = ", ".join(user_purp)
+        await call.message.edit_text(text=f"Ваши цели знакомства: {user_purp}")
+        
         await state.update_data(status_user=status_user)
-        await call.message.edit_text(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(status_user))
+        await call.message.answer(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(status_user))
     else:
         status_user = 'old'
         await state.update_data(status_user=status_user)

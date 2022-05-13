@@ -12,6 +12,7 @@ async def purp_handler(call: types.CallbackQuery, change: bool = None):
     if isinstance(call, types.Message):
         user = await models.UserModel.get(tg_id=call.chat.id)
     else:
+        await call.answer()
         user = await models.UserModel.get(tg_id=call.message.chat.id)
     text = 'Выберите цели знакомства'
     callback_for_next = 'send_ava'
@@ -26,10 +27,6 @@ async def purp_handler(call: types.CallbackQuery, change: bool = None):
                                    callback_for_next=callback_for_next)
     if isinstance(call, types.Message):
         return await call.answer(text, reply_markup=keyboard)
-    try:
-        await call.message.delete()
-    except exceptions.MessageToDeleteNotFound:
-        pass
     return await call.message.answer(text, reply_markup=keyboard)
 
 
@@ -47,6 +44,10 @@ async def change_purp_handler(call: types.CallbackQuery):
     change = False
     if call.data.split(':')[0] == "change_val_purp":
         change = True
+    try:
+        await call.message.delete()
+    except exceptions.MessageToDeleteNotFound:
+        pass
     return await purp_handler(call, change)
 
 
@@ -55,7 +56,11 @@ async def change_purp_handler(call: types.CallbackQuery):
 async def change_purp_quit_handler(call: types.CallbackQuery):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
     await recalculation_purp(user)
-    await call.message.delete()
+    user_purp = await user.purp_dating.all()
+    user_purp = [i.title_purp for i in user_purp]
+    user_purp = ", ".join(user_purp)
+    await call.message.edit_text(text=f"Ваши цели знакомства: {user_purp}")
+    # await call.message.delete()
     return await profile_handler(call.message)
 
 

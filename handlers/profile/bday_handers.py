@@ -20,11 +20,16 @@ async def birthday_handler(call: types.CallbackQuery):
     if call.data.split(':')[0] == 'bday':
         status_user = "new"
         keyboard = None
+        user = await models.UserModel.get(tg_id=call.message.chat.id)
+        interest_place_user = await user.interest_place_companion.all()
+        text_place = ", ".join([i.title_interest for i in interest_place_user])
+        await call.message.edit_text(text=f"Вы выбрали: {text_place}", reply_markup=None)
     else:
+        await call.answer()
         status_user = "old"
         keyboard = await one_button_keyboard(text="Отмена", callback="cancel_state:")
     await state.update_data(status_user=status_user)
-    await call.message.delete()
+    
     await call.message.answer("Укажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
 
 

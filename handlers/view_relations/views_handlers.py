@@ -39,6 +39,8 @@ async def view_relations_handler(message: types.Message):
         return await message.answer("Вы не закончили регистрацию")
     elif user.verification is False:
         return await message.answer("Ваш профиль еще не верифицирован.")
+    # elif user.end_premium is None:
+    #     return await message.answer("У вас нет активного Gold статуса.")
     # count_your_like = await models.UserView.filter(Q(target_user=user) & Q(like=True) & Q(user__verification=True) & Q(user__ban=False)).count()
     count_mutal_like = await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).count()
     your_likes = await rowsql_likes(user.id)
@@ -65,7 +67,7 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
             # if not user_view.like:
                 # user_views.append(user_view)
         if len(your_likes) == 0:
-            return await call.answer("Вас никто не лайкнул.")
+            return await call.message.answer("Нет новых лайков.")
         user_view = await models.UserView.get(id=your_likes.pop(0))
         # user_view: models.UserView = user_views.pop(0)
         redis_cash_2.set(str(call.message.chat.id), json.dumps(your_likes), 5*60)

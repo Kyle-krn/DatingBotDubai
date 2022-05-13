@@ -13,7 +13,8 @@ async def dubai_handler(call: types.CallbackQuery):
     if isinstance(call, types.Message):
         return await call.answer("Планируете переезд в Дубаи?", reply_markup=await dubai_answer_keyboard())
     else:
-        await call.message.delete()
+        # await call.message.delete()
+        await call.answer()
         user = await models.UserModel.get(tg_id=call.message.chat.id)
         return await call.message.answer(text = "Планируете переезд в Дубаи?", 
                                          reply_markup=await dubai_answer_keyboard(remove_in_dubai=user.moving_to_dubai, 
@@ -27,15 +28,16 @@ async def remove_dubai_handler(call: types.CallbackQuery):
     answer = call.data.split(':')[1]
     if answer == 'yes':
         user.moving_to_dubai = True
-        await call.answer("Планируете переезд в Дубаи")
+        await call.message.edit_text(text="Вы выбрали: Планирую переезд в Дубаи", reply_markup=None)
     elif answer == 'no':
         user.moving_to_dubai = False
-        await call.answer("Не планируете переезд в Дубаи")
+        await call.message.edit_text(text="Вы выбрали: Не планирую переезд в Дубаи", reply_markup=None)
+        # await call.answer("Не планируете переезд в Дубаи")
     await user.save()
     if call.data.split(":")[0] == "remove_dubai":
         return await settings_companion_place_hanlder(call)
     else:
-        await call.message.delete()
+        # await call.message.delete()
         if old_value != user.moving_to_dubai:
             await recalculation_location(user)
         return await profile_handler(call.message)
@@ -47,7 +49,8 @@ async def settings_companion_place_hanlder(call: types.CallbackQuery):
     prefix = ''
     if call.data.split(':')[0] == 'settings_companion_dubai':
         prefix = "c_"
-    return await call.message.edit_text("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user, prefix))
+        await call.answer()
+    return await call.message.answer("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user, prefix))
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'companion_dubai')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'c_companion_dubai')
@@ -66,7 +69,10 @@ async def add_companion_dubai_interest(call: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'back_settings')
 async def back_settings_handler(call: types.CallbackQuery):
-    await call.message.delete()
+    # await call.message.delete()
     user = await models.UserModel.get(tg_id=call.message.chat.id)
+    interest_place_user = await user.interest_place_companion.all()
+    text_place = ", ".join([i.title_interest for i in interest_place_user])
+    await call.message.edit_text(text=f"Вы выбрали: {text_place}", reply_markup=None)
     await recalculation_location(user)
     return await settings_handler(call.message)

@@ -13,10 +13,11 @@ async def gender_handler(call: types.CallbackQuery):
     gender = call.data.split(':')[1]
     if gender == 'male':
         user.male = True
-        await call.answer("Вы выбрали: Мужчина")
+        await call.message.edit_text(text="Вы выбрали: Мужчина", reply_markup=None)
     else:
         user.male = False
-        await call.answer("Вы выбрали: Женщина")
+        # await call.answer("Вы выбрали: Женщина")
+        await call.message.edit_text(text="Вы выбрали: Женщина", reply_markup=None)
     await user.save()
     await city_set_state_handler(call)
     # await call.message.delete()

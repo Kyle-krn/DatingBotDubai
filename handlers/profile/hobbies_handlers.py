@@ -31,7 +31,8 @@ async def set_hobbies_state(call: types.CallbackQuery):
     else:
         user = await models.UserModel.get(tg_id=call.message.chat.id)
         status_user="old"
-        await call.message.delete()
+        # await call.message.delete()
+        await call.answer()
         msg = await call.message.answer(text, reply_markup=await remove_hobbie_keyboard(status_user=status_user,hobbies_list=await user.hobbies.all()))
     await state.update_data(msg_id=msg.message_id, status_user=status_user, append_hobbie=False)
 
@@ -86,10 +87,13 @@ async def skip_hobbies_handler(call: types.CallbackQuery, state: FSMContext):
     if user_data['status_user'] == 'new':
         await marriage_handler(call)
     else:
+        user = await models.UserModel.get(tg_id=call.message.chat.id)
         if user_data['append_hobbie'] is True:
-            user = await models.UserModel.get(tg_id=call.message.chat.id)
             await recalculation_int(user=user, check_func=check_hobbies, attr_name="percent_hobbies")
-        await call.message.delete()
+        hobbies = await user.hobbies.all()
+        hobbies = [i.title_hobbie for i in hobbies]
+        hobbies = ", ".join(hobbies)
+        await call.message.edit_text(text=f"Ваши увлечения: {hobbies}", reply_markup=None)
         return await profile_handler(call.message)
 
 

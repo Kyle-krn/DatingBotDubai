@@ -17,7 +17,7 @@ def send_log_channel(msg):
         msg = msg.replace('', '<')
     while '>' in msg:
         msg = msg.replace('', '>')
-    x = requests.get(f'https://api.telegram.org/bot{config.BOT_TOKEN}/sendMessage?chat_id=@erbrtnytyumynty&text={urllib.parse.quote(msg)}') 
+    requests.get(f'https://api.telegram.org/bot{config.BOT_TOKEN}/sendMessage?chat_id=@erbrtnytyumynty&text={urllib.parse.quote(msg)}') 
     # await bot.send_message(-config.DEBUG_CHANNEL_ID, str(msg), parse_mode=types.ParseMode.HTML)
 
 
@@ -30,7 +30,7 @@ class TgLoggerHandler(logging.Handler):
 tg_handler = TgLoggerHandler()
 tg_handler.setLevel(logging.ERROR)
 stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.CRITICAL)
+stream_handler.setLevel(logging.ERROR)
 
 bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 storage = RedisStorage2('localhost', 6379, db=0, pool_size=10, prefix='state_aio')

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="row">
+    <div class="col-lg-8 col-lg-offset-4 col-centered">
+        <form action="/percent/{{percents[0].id}}" method="post">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">1 и 2ой шаг</span>
+              </div>
+            <input type="number" name="percent" id="p1" value="{{percents[0].percent}}" class="form-control"/> 
+            <span class="input-group-btn">
+                <button class="btn btn-success" type="submit">Изменить</button>
+            </span>
+        </div><!-- /input-group -->
+    </form>
+    
+    </div><!-- /.col-lg-4 -->
+</div><!-- /.row -->
+<br>
+<div class="row">
+    <div class="col-lg-8 col-lg-offset-4 col-centered">
+        <form action="/percent/{{percents[5].id}}" method="post">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Хобби</span>
+              </div>
+            <input type="number" name="percent" id="p1" value="{{percents[5].percent}}" class="form-control"/> 
+            <span class="input-group-btn">
+                <button class="btn btn-success" type="submit">Изменить</button>
+            </span>
+        </div><!-- /input-group -->
+    </form>
+    
+    </div><!-- /.col-lg-4 -->
+</div><!-- /.row -->
+
+<br>
+<div class="row">
+    <div class="col-lg-8 col-lg-offset-4 col-centered">
+        <form action="/percent/age" method="post">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Возраст</span>
+              </div>
+            <input type="number" id="p1" name="percent_age" value="{{percents[1].percent}}" class="form-control"/> 
+                <span class="input-group-text" id="basic-addon1">Шаг возраста</span>
+            <input type="number" id="p1" name="percent_step" value="{{percents[2].percent}}" class="form-control"/> 
+            <span class="input-group-btn">
+                <button class="btn btn-success" type="submit">Изменить</button>
+            </span>
+        </div><!-- /input-group -->
+    </form>
+    
+    </div><!-- /.col-lg-4 -->
+</div><!-- /.row -->
+<br>
+<div class="row">
+    <div class="col-lg-8 col-lg-offset-4 col-centered">
+        <form action="/percent/children" method="post">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Дети</span>
+              </div>
+            <input type="number" id="p1" name="percent_children" value="{{percents[3].percent}}" class="form-control"/> 
+                <span class="input-group-text" id="basic-addon1">Возраст детей</span>
+            <input type="number" id="p1" name="percent_children_age" value="{{percents[4].percent}}" class="form-control"/> 
+            <span class="input-group-btn">
+                <button class="btn btn-success" type="submit">Изменить</button>
+            </span>
+        </div><!-- /input-group -->
+    </form>
+    
+    </div><!-- /.col-lg-4 -->
+</div><!-- /.row -->
+
+<style>
+    .col-centered{
+        margin: 0 auto;
+        float: none;
+    }
+</style>
+{% endblock %}

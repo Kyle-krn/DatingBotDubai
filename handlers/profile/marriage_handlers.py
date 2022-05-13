@@ -17,10 +17,18 @@ async def marriage_handler(call: types.CallbackQuery):
         keyboard = await marital_status_keyboard(user_martial_status=martial_status)
     
     if call.data.split(':')[0] == 'change_marriage':
-        await call.message.delete()
+        # await call.message.delete()
+        await call.answer()
         await call.message.answer(text='Ваше семейное положение?', reply_markup=keyboard)
     else:
-        await call.message.edit_text(text='Ваше семейное положение?', reply_markup=keyboard)
+        hobbies = await user.hobbies.all()
+        hobbies = [i.title_hobbie for i in hobbies]
+        if len(hobbies) == 0:
+            text = "Вы не добавили увлечения."
+        else:
+            text = "Ваши увлечения: " + ", ".join(hobbies)
+        await call.message.edit_text(text=text, reply_markup=None)
+        await call.message.answer(text='Ваше семейное положение?', reply_markup=keyboard)
 
 
 
@@ -33,9 +41,10 @@ async def mar_status_handler(call: types.CallbackQuery):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
     user.marital_status = status
     await user.save()
+    await call.message.edit_text(text=f"Ваше семейное положение: {user.marital_status}")
     if call.data.split(':')[0] == 'ms':
-        await call.message.edit_text(text="У вас есть дети? Информация будет использоваться для поиска более подходящих вам знакомств.", 
+        await call.message.answer(text="У вас есть дети? Информация будет использоваться для поиска более подходящих вам знакомств.", 
                                     reply_markup=await children_keyboard())
     else:
-        await call.message.delete()
+        # await call.message.delete()
         return await profile_handler(call.message)

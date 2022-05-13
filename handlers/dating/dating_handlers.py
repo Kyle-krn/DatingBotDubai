@@ -77,6 +77,7 @@ async def reaction_ad_handler(call: types.CallbackQuery):
     command = call.data.split(':')[1]
     # print(call.data)
     if command == "like":
+        text = "LIKE 👍\n\n"
         if not user.end_premium:
             if user.free_likes <= 0:
                 return await call.message.answer("У вас закончились лайки на сегодня, вы можете купить Gold статус и ставить неограниченное число лайков.",
@@ -89,34 +90,36 @@ async def reaction_ad_handler(call: types.CallbackQuery):
                                  user=user,
                                  target_user=target_user,
                                  relation=await view.relation,)
-            # text_1 = "У вас новая пара!\n\n"
-            # text = text_1 + await generate_ad_text(target_user=target_user, relation=await view.relation)
-            # await call.message.answer(text)
-            # text = text_1 + await generate_ad_text(target_user=user, relation=await view.relation)
-            # await bot.send_message(chat_id=target_user.tg_id, text=text)
-            # await models.MutualLike.create(user=user, target_user=target_user)
     elif command == "superlike":
         if user.superlike_count <= 0:
-            await call.message.answer("У вас нет суперлайков.",reply_markup=await one_button_keyboard(text="Купить 10 суперлайков", callback="buy:likes:10"))
+            return await call.message.answer("У вас нет суперлайков.",reply_markup=await one_button_keyboard(text="Купить 10 суперлайков", callback="buy:likes:10"))
         else:
+            text = "SUPERLIKE ⭐\n\n"
             view.like = True
             view.superlike = True
             text_1 = f"Пользователь @{user.tg_username} отправил вам суперлайк!\n\n"
-            text = text_1 + await generate_ad_text(target_user=target_user, relation=await view.relation)
+            text_msg = text_1 + await generate_ad_text(target_user=target_user, relation=await view.relation)
             avatar_tar = await target_user.avatar
-            if avatar_tar.file_type.lower() in PHOTO_TYPES:
-                await call.message.answer_photo(photo=avatar_tar.file_id, caption=text) 
-            elif avatar_tar.file_type.lower() in VIDEO_TYPES:
-                await call.message.answer_video(video=avatar_tar.file_id, caption=text)
-            await bot.send_message(chat_id=target_user.tg_id, text=text)
+            avatar_user = await user.avatar
+            if avatar_user.file_type.lower() in PHOTO_TYPES:
+                await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text_msg) 
+            elif avatar_user.file_type.lower() in VIDEO_TYPES:
+                await bot.send_video(chat_id=target_user.tg_id, video=avatar_tar.file_id, caption=text_msg)
+
+            # await bot.send_message(chat_id=target_user.tg_id, text=text_msg)
             user.superlike_count -= 1
             await user.save()
 
     elif command == "dislike":
         view.dislike = True
+        text = "DISLIKE 👎 \n\n"
     await view.save()
+    caption = call.message.caption
+    caption = text+caption
+    await call.message.edit_caption(caption=caption)
     if call.data.split(':')[0] == 'reaction':
-        await call.message.delete()
+        # if call.message.photo:
+        
         return await search_dating(call.message, last_view_id=view_id)
     else:
         return await view_your_likes_handler(call, last_view_id=view_id)

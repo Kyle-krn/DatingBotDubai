@@ -13,11 +13,12 @@ from .views_self_profile_handlers import profile_handler
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "change_place")
 async def city_set_state_handler(call: types.CallbackQuery):
-    await call.message.delete()
+    # await call.message.delete()
     await ProfileSettingsState.city.set()
     state = dp.get_current().current_state()
     if call.data.split(':')[0] == "change_place":
         status_user = "old"
+        await call.answer()
     else:
         status_user = "new"
     await state.update_data(status_user=status_user)
@@ -56,10 +57,10 @@ async def answer_city_handler(call: types.CallbackQuery, state: FSMContext):
         user.lat = user_data['geolocation'][1]
         user.long = user_data['geolocation'][0]
         user.tmz = user_data['tmz']
-        await call.answer(f"Ваш город: {user.place}")
+        await call.message.edit_text(text=f"Ваш город: {user.place}", reply_markup=None)
         await user.save()
         await state.finish()
-        await call.message.delete()
+        # await call.message.delete()
         msg = await call.message.answer("Загрузка ⏳", reply_markup=types.ReplyKeyboardRemove())
         await msg.delete()
         
@@ -126,10 +127,3 @@ async def geolocation_handler(message: types.Message, state: FSMContext):
         else:
             return await message.answer("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user))
     
-    # if not 'Dubai' in user.place:
-    #     # return await message.answer("Планируете переезд в Дубаи?", reply_markup=await dubai_answer_keyboard())
-    #     return dubai_handler(message)
-    # else:
-    #     user.dubai = True
-    #     await user.save()
-    #     return await message.answer("Укажите с кем вы заинтересованы в знакомствах?", reply_markup=await companion_dubai_keyboard(user))

@@ -43,6 +43,9 @@ async def profile_handler(message: types.Message):
 
     # photo_types = ('jpeg', 'jpg', "webm", "png")
     # video_types = ("mp4", "avi")
+    if avatar.file_id is None:
+        await message.answer_photo(photo=open('static/guest.png', 'rb'),caption=text, reply_markup=await main_profile_keyboard(dubai=user.dubai))
+    
     if avatar.file_type.lower() in PHOTO_TYPES:
         await message.answer_photo(photo=avatar.file_id,caption=text, reply_markup=await main_profile_keyboard(dubai=user.dubai))
     elif avatar.file_type.lower() in VIDEO_TYPES:
