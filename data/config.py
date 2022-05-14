@@ -36,3 +36,5 @@ PHOTO_TYPES = ('jpeg', 'jpg', "webm", "png")
 VIDEO_TYPES = ("mp4", "avi")
 
 DEBUG_CHANNEL_ID = env.int('DEBUG_CHANNEL_ID')
+
+KEYBOARD_TEXT = ["👥 Найти пару", "👤 Профиль", "💑 Симпатии", "⚙ Настройки", "💸 Тарифные планы", "🆘 Помощь"]

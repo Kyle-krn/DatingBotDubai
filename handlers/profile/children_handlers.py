@@ -1,4 +1,6 @@
+from data.config import KEYBOARD_TEXT
 from handlers.calculation_relations.relations_handlers import check_children
+from handlers.cancel_state_handler import redirect_handler
 from loader import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -53,11 +55,11 @@ async def childrens_age_handler(call: types.CallbackQuery):
 async def children_state_handler(message: types.Message, state: FSMContext):
     user = await models.UserModel.get(tg_id=message.chat.id)
     user_data = await state.get_data()
-    if message.text.isdigit() and int(message.text) == 0:
+    if (message.text.isdigit() and int(message.text) == 0) or (message.text in KEYBOARD_TEXT):
         user.children_age = []
     else:
-        children_list = [i.strip() for i in message.text.split(',')]
         
+        children_list = [i.strip() for i in message.text.split(',')]
         try:
             children_list = [int(i) for i in children_list if 0 < int(i)]
         except (ValueError, TypeError):
@@ -76,7 +78,10 @@ async def children_state_handler(message: types.Message, state: FSMContext):
             await recalculation_int(user=user,
                             check_func=check_children,
                             attr_name="percent_children")
-        return await profile_handler(message)
+        if message.text in KEYBOARD_TEXT:
+            return await redirect_handler(message, message.text)
+        else:
+            return await profile_handler(message)
         
 
 

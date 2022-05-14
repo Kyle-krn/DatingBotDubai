@@ -22,7 +22,7 @@ async def settings_handler(message: types.Message):
         text += "Жен.\n"
     elif settings.male is None:
         text += "Неважно\n"
-    text += "Муж.\n" if settings.male is True else "Жен.\n"
+    # text += "Муж.\n" if settings.male is True else "Жен.\n"
     settings.min_age = 18 if settings.min_age is None else settings.min_age
     settings.max_age = 99 if settings.max_age is None else settings.max_age
     text += f"Возр. Диапазон: {settings.min_age}-{settings.max_age} лет\n"

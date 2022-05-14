@@ -1,5 +1,8 @@
+import re
+from data.config import KEYBOARD_TEXT
 from handlers.calculation_relations.recalculation_relations import recalculation_int
 from handlers.calculation_relations.relations_handlers import check_children
+from handlers.cancel_state_handler import redirect_handler
 from keyboards.inline.user_settings_keyboards import settings_children_keyboard
 from loader import dp
 from aiogram import types
@@ -52,27 +55,30 @@ async def set_children_age_state_handler(call: types.CallbackQuery):
 
 @dp.message_handler(state=SearchSettingsState.children_age)
 async def set_value_children_age_hanlder(message: types.Message, state: FSMContext):
-    try:
+    if message.text not in KEYBOARD_TEXT:
+        try:
+            if message.text.strip() != '0':
+                age = message.text.split('-')
+                if len(age) != 2:
+                    raise IndexError
+                min = int(age[0].strip())
+                max = int(age[1].strip())
+        except Exception as e:
+            return await message.answer("Не могу распознать возраст, попробуйте снова")
+        
         if message.text.strip() != '0':
-            age = message.text.split('-')
-            if len(age) != 2:
-                raise IndexError
-            min = int(age[0].strip())
-            max = int(age[1].strip())
-    except Exception as e:
-        return await message.answer("Не могу распознать возраст, попробуйте снова")
-    
-    if message.text.strip() != '0':
-        if min <0 or max <0:
-            return await message.answer("Возраст не может быть отрицательным")
-        if max > 18:
-            return await message.answer("Максимальный возраст 17 лет.")
-        if min > max:
-            return await message.answer("Минимальный возраст не может привышать максимальный возраст.")
+            if min <0 or max <0:
+                return await message.answer("Возраст не может быть отрицательным")
+            if max > 18:
+                return await message.answer("Максимальный возраст 17 лет.")
+            if min > max:
+                return await message.answer("Минимальный возраст не может привышать максимальный возраст.")
+        else:
+            min = None
+            max = None
     else:
         min = None
         max = None
-
     user = await models.UserModel.get(tg_id=message.chat.id)
     settings: models.UserSearchSettings = await user.search_settings
     settings.children = True
@@ -83,4 +89,7 @@ async def set_value_children_age_hanlder(message: types.Message, state: FSMConte
                             check_func=check_children,
                             attr_name="percent_children")
     await state.finish()
-    return await settings_handler(message)
+    if message.text in KEYBOARD_TEXT:
+        return await redirect_handler(message, message.text)
+    else:
+        return await settings_handler(message)

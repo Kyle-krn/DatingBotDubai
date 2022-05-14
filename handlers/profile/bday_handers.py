@@ -1,4 +1,6 @@
+from data.config import KEYBOARD_TEXT
 from handlers.calculation_relations.relations_handlers import check_age
+from handlers.cancel_state_handler import redirect_handler
 from keyboards.inline.inline_keyboards import one_button_keyboard
 from loader import dp
 from aiogram import types
@@ -39,6 +41,9 @@ async def input_bday_handler(message: types.Message, state: FSMContext):
     if user_data['status_user'] == "new":
         keyboard = None
     elif user_data['status_user'] == "old":
+        if message.text in KEYBOARD_TEXT:
+            await state.finish()
+            return await redirect_handler(message=message, button_text=message.text)
         keyboard = await one_button_keyboard(text="Отмена", callback="cancel_state:")
     try:
         bday = datetime.strptime(message.text, '%d.%m.%Y').date()
