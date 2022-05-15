@@ -26,7 +26,10 @@ async def generate_ad_text(target_user: models.UserModel, relation):
     if target_hobbies:
         text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
     # relation = await user_view.relation
-    text += f"Процент совместимости: {relation.percent_compatibility}%"
+    percent = relation.percent_compatibility
+    if percent > 100:
+        percent = 99
+    text += f"Процент совместимости: {percent}%"
     return text
 
 

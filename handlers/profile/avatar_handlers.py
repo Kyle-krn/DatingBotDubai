@@ -1,5 +1,6 @@
 from datetime import datetime
-from data.config import PHOTO_TYPES, VIDEO_TYPES
+from data.config import KEYBOARD_TEXT, PHOTO_TYPES, VIDEO_TYPES
+from handlers.cancel_state_handler import redirect_handler
 from loader import dp, BASE_DIR, bot
 from models import models
 from aiogram import types
@@ -40,8 +41,14 @@ async def back_send_document_handler(call: types.CallbackQuery, state: FSMContex
     await call.message.edit_text(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(user_data['status_user']))
 
 
-@dp.message_handler(content_types=['document', 'photo', 'video'], state=ProfileSettingsState.avatar)
+@dp.message_handler(content_types=['document', 'photo', 'video', 'text'], state=ProfileSettingsState.avatar)
 async def upload_file_handler(message: types.Message, state: FSMContext):
+    if message.text:
+        if message.text in KEYBOARD_TEXT:
+            await state.finish()    
+            return await redirect_handler(message=message, button_text=message.text)
+        else:
+            return
     user = await models.UserModel.get(tg_id=message.chat.id)
     user_data = await state.get_data()
     static_path = "/static/"

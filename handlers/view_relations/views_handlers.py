@@ -11,6 +11,7 @@ from keyboards.inline.inline_keyboards import like_keyboard, mutal_likes_keyboar
 
 import redis
 import json
+from utils.text_for_ad import generate_ad_text
 
 from utils.zodiak import zodiac_sign
 from models.row_user_likes import rowsql_likes
@@ -77,33 +78,33 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
         ttl = redis_cash_2.ttl(str(call.message.chat.id))
         if ttl > 0:
                 redis_cash_2.set(str(call.message.chat.id), json.dumps(queryset_cache), ttl)
-    # await user_view.save()
+    await user_view.save()
     await call.message.delete()
     target_user = await user_view.target_user
     avatar = await target_user.avatar
     
-    zodiak = await zodiac_sign(target_user.birthday)
+    # zodiak = await zodiac_sign(target_user.birthday)
 
-    year = datetime.now().year
-    text = f"{target_user.name}, {year-target_user.birthday.year}\n"  \
-           f"{zodiak}\n" \
-           f"🗺️ {target_user.place}\n" \
-           f"👫 {target_user.marital_status}\n"  \
-           f"Дети: "
-    if target_user.children is True:
-        text += "Есть\n"
-    elif target_user.children is False:
-        text += "Нет\n"
-    elif target_user.children is None:
-        text += "Не скажу\n"
-    if target_user.children_age != []:
-        text += "Возраст детей: " + ", ".join([str(i)+" г." for i in target_user.children_age]) + "\n"
-    target_hobbies = await target_user.hobbies.all()
-    if target_hobbies:
-        text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
-    relation = await user_view.relation
-    text += f"Процент совместимости: {relation.percent_compatibility}%"
-
+    # year = datetime.now().year
+    # text = f"{target_user.name}, {year-target_user.birthday.year}\n"  \
+    #        f"{zodiak}\n" \
+    #        f"🗺️ {target_user.place}\n" \
+    #        f"👫 {target_user.marital_status}\n"  \
+    #        f"Дети: "
+    # if target_user.children is True:
+    #     text += "Есть\n"
+    # elif target_user.children is False:
+    #     text += "Нет\n"
+    # elif target_user.children is None:
+    #     text += "Не скажу\n"
+    # if target_user.children_age != []:
+    #     text += "Возраст детей: " + ", ".join([str(i)+" г." for i in target_user.children_age]) + "\n"
+    # target_hobbies = await target_user.hobbies.all()
+    # if target_hobbies:
+    #     text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
+    # relation = await user_view.
+    # text += f"Процент совместимости: {relation.percent_compatibility}%"
+    text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
     # photo_types = ('jpeg', 'jpg', "webm", "png")
     # video_types = ("mp4", "avi")
     
