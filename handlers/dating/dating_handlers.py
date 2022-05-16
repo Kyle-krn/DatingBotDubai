@@ -54,8 +54,9 @@ async def search_dating(message: types.Message, last_view_id: int = None):
     
 
     text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
-
-    if avatar.file_type.lower() in PHOTO_TYPES:
+    if avatar.file_type is None:
+        pass
+    elif avatar.file_type.lower() in PHOTO_TYPES:
         await message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, superlike_count=user.superlike_count)) 
     elif avatar.file_type.lower() in VIDEO_TYPES:
         await message.answer_video(video=avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, superlike_count=user.superlike_count))
