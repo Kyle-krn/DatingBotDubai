@@ -24,7 +24,7 @@ def send_log_channel(msg):
 class TgLoggerHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
-        # send_log_channel(msg)
+        send_log_channel(msg)
 
 
 tg_handler = TgLoggerHandler()
