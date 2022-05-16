@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from handlers.calculation_relations.relations_handlers import check_age, check_children, check_hobbies
 from models import models
@@ -7,6 +7,8 @@ from fastapi import Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import APIRouter
 from loader import templates, bot
+from dateutil.relativedelta import *
+
 from routes.login_routes import get_current_username
 user_router = APIRouter()
 
@@ -133,6 +135,22 @@ async def del_hobbie_handler(request: Request, id: int, hobbies: list = Form(...
 async def append_superlikes(request: Request, id: int, superlike_count: int = Form(...), log: str = Depends(get_current_username)):
     user = await models.UserModel.get(id=id)
     user.superlike_count += superlike_count
+    await user.save()
+    return RedirectResponse(
+        f'/get_user/{id}', 
+        status_code=status.HTTP_302_FOUND)
+
+
+@user_router.post("/append_premium/{id}")
+async def append_superlikes(request: Request, id: int, mounth_count: int = Form(...), log: str = Depends(get_current_username)):
+    user = await models.UserModel.get(id=id)
+    end_premium_date = datetime.utcnow() + relativedelta(months=+mounth_count)
+    if user.end_premium is None:
+        user.end_premium = end_premium_date
+    else:
+        user.end_premium = user.end_premium + relativedelta(months=+mounth_count)
+    if user.end_premium.replace(tzinfo=None) < datetime.now():
+        user.end_premium = None
     await user.save()
     return RedirectResponse(
         f'/get_user/{id}', 
