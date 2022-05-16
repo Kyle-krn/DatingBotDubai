@@ -69,12 +69,12 @@ async def answer_city_handler(call: types.CallbackQuery, state: FSMContext):
             user.dubai = False
         else:
             user.dubai = True
-
+            user.moving_to_dubai = None
         await user.save()
         if user_data['status_user'] == 'old':
             
             await call.message.answer(text='Успешно!', reply_markup=await main_keyboard())
-
+            await user.save()
             if old_value != user.dubai:
                 await recalculation_location(user)
             return await profile_handler(call.message)
