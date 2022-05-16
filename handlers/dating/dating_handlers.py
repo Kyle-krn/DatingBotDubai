@@ -47,10 +47,14 @@ async def search_dating(message: types.Message, last_view_id: int = None):
         if ttl > 0:
             redis_cash_1.set(str(message.chat.id), json.dumps(queryset_cache), ttl)
 
-    user_view.count_view += 1
-    await user_view.save()
     target_user = await user_view.target_user
     avatar = await target_user.avatar
+    if target_user.verification == False or avatar.file_type is None:
+        return await search_dating(message)
+    
+    user_view.count_view += 1
+    await user_view.save()
+    
     
 
     text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
