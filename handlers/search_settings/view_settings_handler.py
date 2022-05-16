@@ -6,7 +6,7 @@ from keyboards.inline.user_settings_keyboards import settings_search_keyboard
 
 
     
-
+@dp.message_handler(commands=['settings'])
 @dp.message_handler(regexp="^(⚙ Настройки)$")
 async def settings_handler(message: types.Message):
     user = await models.UserModel.get(tg_id=message.chat.id)

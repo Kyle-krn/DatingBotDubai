@@ -18,15 +18,15 @@ async def cancel_state_handler(call: types.CallbackQuery, state: FSMContext):
 
 
 async def redirect_handler(message: types.Message, button_text: str):
-    if button_text == '👥 Найти пару':
+    if button_text == '👥 Найти пару' or button_text == '/dating':
         return await search_dating(message)
-    elif button_text == '👤 Профиль':
+    elif button_text == '👤 Профиль' or button_text == '/profile':
         return await profile_handler(message)
-    elif button_text == "💑 Симпатии":
+    elif button_text == "💑 Симпатии" or button_text == '/likes':
         return await view_relations_handler(message)
-    elif button_text == '⚙ Настройки':
+    elif button_text == '⚙ Настройки' or button_text == '/settings':
         return await settings_handler(message)
-    elif button_text == '💸 Тарифные планы':
+    elif button_text == '💸 Тарифные планы' or button_text == '/rate_plane':
         return await rate_plane_handler(message)
-    elif button_text == '🆘 Помощь':
+    elif button_text == '🆘 Помощь' or button_text == '/help':
         pass

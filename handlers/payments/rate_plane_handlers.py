@@ -7,6 +7,7 @@ from keyboards.inline.payments_keyboards import rate_keyboard
 # 381764678:TEST:36928
 from dateutil.relativedelta import *
 
+@dp.message_handler(commands=['rate_plane'])
 @dp.message_handler(regexp="^(💸 Тарифные планы)$")
 async def rate_plane_handler(message: types.Message):
     user = await models.UserModel.get(tg_id=message.chat.id)

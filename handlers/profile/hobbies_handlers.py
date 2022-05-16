@@ -42,6 +42,7 @@ async def set_hobbies_state(call: types.CallbackQuery):
 @dp.message_handler(state=ProfileSettingsState.hobbies)
 async def input_hobbies_handler(message: types.Message, state: FSMContext):
     hobbies = [i.strip().capitalize() for i in message.text.split(',')]
+    user = await models.UserModel.get(tg_id=message.chat.id)
     user_data = await state.get_data()
     print(user_data)
     if message.text in KEYBOARD_TEXT and user_data['status_user'] == 'old':
@@ -52,7 +53,7 @@ async def input_hobbies_handler(message: types.Message, state: FSMContext):
         # return await message.answer("Нажмите продолжить что бы завершить ввод увлечений.")
     # await state.finish()
     old_msg_id: types.Message = user_data['msg_id']
-    user = await models.UserModel.get(tg_id=message.chat.id)
+    
     list_hobbie = []
     for hobbie in hobbies:
         hobbie_db = await models.Hobbies.get_or_none(title_hobbie=hobbie)

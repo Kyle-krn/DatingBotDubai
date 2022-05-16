@@ -43,6 +43,7 @@ async def back_send_document_handler(call: types.CallbackQuery, state: FSMContex
 
 @dp.message_handler(content_types=['document', 'photo', 'video', 'text'], state=ProfileSettingsState.avatar)
 async def upload_file_handler(message: types.Message, state: FSMContext):
+    print(message.text)
     if message.text:
         if message.text in KEYBOARD_TEXT:
             await state.finish()    
