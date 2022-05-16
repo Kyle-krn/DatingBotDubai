@@ -37,5 +37,4 @@ VIDEO_TYPES = ("mp4", "avi")
 
 DEBUG_CHANNEL_ID = env.int('DEBUG_CHANNEL_ID')
 
-KEYBOARD_TEXT = ["👥 Найти пару", "👤 Профиль", "💑 Симпатии", "⚙ Настройки", "💸 Тарифные планы", "🆘 Помощь"]
-COMMAND_TEXT = ["/dating", "/profile", "/likes", "/settings", "/rate_plane", "/help"]
+KEYBOARD_TEXT = ["👥 Найти пару", "👤 Профиль", "💑 Симпатии", "⚙ Настройки", "💸 Тарифные планы", "🆘 Помощь", "/dating", "/profile", "/likes", "/settings", "/rate_plane", "/help"]
