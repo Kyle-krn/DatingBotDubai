@@ -24,13 +24,13 @@ def send_log_channel(msg):
 class TgLoggerHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
-        send_log_channel(msg)
+        # send_log_channel(msg)
 
 
 tg_handler = TgLoggerHandler()
 tg_handler.setLevel(logging.ERROR)
 stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.ERROR)
+stream_handler.setLevel(logging.INFO)
 
 bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 storage = RedisStorage2('localhost', 6379, db=0, pool_size=10, prefix='state_aio')

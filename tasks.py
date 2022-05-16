@@ -17,7 +17,7 @@ async def update_likes():
 async def spam_motivation_message(bot: Bot):
     # photo_types = ('jpeg', 'jpg', "webm", "png")
     # video_types = ("mp4", "avi")
-    list_users = [await models.UserModel.get(id=123)]
+    list_users = await models.UserModel.filter(Q(ban=False) & Q(tmz__isnull=False))
     for user in list_users:
         local_time_user = datetime.utcnow() + timedelta(hours=user.tmz)
         if datetime(day=local_time_user.day, 
@@ -60,7 +60,7 @@ async def spam_motivation_message(bot: Bot):
 
 
 async def scheduler(bot):
-    aioschedule.every(1).hours.do(spam_motivation_message, bot)
+    aioschedule.every(30).minutes.do(spam_motivation_message, bot)
     aioschedule.every().day.at("12:00").do(update_likes)
     while True:
         await aioschedule.run_pending() 
