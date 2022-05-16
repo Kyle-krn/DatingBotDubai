@@ -120,7 +120,7 @@ async def reload_percent_for_1_2_step(old_percent, new_percent):
         percent = percent - old_percent + new_percent
         if percent > 0:
             relation.percent_compatibility = percent
-            print(relation.user)                                               
+            # print(relation.user)                                               
             await models.UserView.get_or_create(user=await relation.user, target_user=await relation.target_user, relation=relation)
             await models.UserView.get_or_create(user=await relation.target_user, target_user=await relation.user, relation=relation)
         else:
@@ -136,7 +136,7 @@ async def reload_hobbies():
         target_user = await relation.target_user
         percent_hobbies = await check_hobbies(target_user=target_user,
                                                 hobbies_user=hobbies_user)
-        print(percent_hobbies)
+        # print(percent_hobbies)
         relation.percent_hobbies = percent_hobbies
         if relation.result_distance_check and relation.result_purp_check and relation.result_gender_check:
             step1_2 = await models.DatingPercent.get(id=1)

@@ -9,7 +9,7 @@ from fastapi import APIRouter
 from loader import templates, bot
 from dateutil.relativedelta import *
 import starlette.status as status
-
+from aiogram.utils.exceptions import BotBlocked
 from routes.login_routes import get_current_username
 user_router = APIRouter()
 
@@ -103,9 +103,14 @@ async def ban_user_handler(request: Request, id: int, log: str = Depends(get_cur
     user.ban = not user.ban
     await user.save()
     if user.ban:
-        await bot.send_message(chat_id=user.tg_id, text="Вы забанены.")
+        text = "Вы забанены."
+        
     else:
-        await bot.send_message(chat_id=user.tg_id, text="Вас разбанили.")
+        text = "Вас разбанили."
+    try:
+        await bot.send_message(chat_id=user.tg_id, text=text)
+    except BotBlocked:
+        pass
     return f"/get_user/{id}"
 
 @user_router.get("/verif_user/{id}", response_class=RedirectResponse)
@@ -114,9 +119,13 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
     user.verification = not user.verification
     await user.save()
     if user.verification:
-        await bot.send_message(chat_id=user.tg_id, text="Ваш аккаунт верифицирован.")
+        text="Ваш аккаунт верифицирован."
     else:
-        await bot.send_message(chat_id=user.tg_id, text="Ваш аккаунт перестал был верифицированым.")
+        text="Ваш аккаунт перестал был верифицированым."
+    try:
+        await bot.send_message(chat_id=user.tg_id, text=text)
+    except BotBlocked:
+        pass
     return f"/get_user/{id}"
 
 
@@ -169,7 +178,10 @@ async def del_hobbie_handler(request: Request, id: int, msg: Optional[str] = For
         text = "Ваше фото отклонено."
     else:
         text = msg
-    await bot.send_message(chat_id=user.tg_id ,text=text)
+    try:
+        await bot.send_message(chat_id=user.tg_id ,text=text)
+    except BotBlocked:
+        pass
     return RedirectResponse(
         f'/get_user/{id}', 
         status_code=status.HTTP_302_FOUND)

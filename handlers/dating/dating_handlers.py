@@ -12,7 +12,7 @@ import redis
 import json
 from handlers.view_relations.views_handlers import view_your_likes_handler
 import tortoise
-
+from aiogram.utils.exceptions import BotBlocked
 redis_cash_1 = redis.Redis(db=1)
 
 @dp.message_handler(commands=['dating'])
@@ -110,11 +110,16 @@ async def reaction_ad_handler(call: types.CallbackQuery):
             avatar_tar = await target_user.avatar
             avatar_user = await user.avatar
             if avatar_user.file_type.lower() in PHOTO_TYPES:
-                await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text_msg) 
+                try:
+                    await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text_msg) 
+                except BotBlocked:
+                    pass
             elif avatar_user.file_type.lower() in VIDEO_TYPES:
-                await bot.send_video(chat_id=target_user.tg_id, video=avatar_tar.file_id, caption=text_msg)
-
-            # await bot.send_message(chat_id=target_user.tg_id, text=text_msg)
+                try:
+                    await bot.send_video(chat_id=target_user.tg_id, video=avatar_tar.file_id, caption=text_msg)
+                except BotBlocked:
+                    pass
+            
             user.superlike_count -= 1
             await user.save()
 
@@ -160,10 +165,15 @@ async def mutal_like_func(message: types.Message,
         text += end_text + f"@{user.tg_username}"
 
     if avatar_user.file_type.lower() in PHOTO_TYPES:
-        await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text) 
+        try:
+            await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text) 
+        except BotBlocked:
+            pass
     elif avatar_user.file_type.lower() in VIDEO_TYPES:
-        await bot.send_video(chat_id=target_user.tg_id, video=avatar_user.file_id, caption=text)
-
+        try:
+            await bot.send_video(chat_id=target_user.tg_id, video=avatar_user.file_id, caption=text)
+        except BotBlocked:
+            pass
     await models.MutualLike.create(user=user, target_user=target_user)
 
 
@@ -171,10 +181,15 @@ async def null_tg_username_answer(chat_id: int):
     text = "Пользователю [Имя] не пришел ваш контакт, добавьте [@имя бота] в исключения, "  \
            "для этого пройдите в меню настройки пересылки сообщений для Telegram: "  \
            "Настройки -> Конфиденциальность -> Пересылка сообщений"
-    await bot.send_message(chat_id=chat_id, text=text)
-
+    try:
+        await bot.send_message(chat_id=chat_id, text=text)
+    except BotBlocked:
+        pass
 
 
 async def null_premium_message(chat_id: int):
     text = "Тебя лайкнули, чтобы видеть профили, которым ты понравился подключи тариф Gold"
-    await bot.send_message(chat_id=chat_id, text=text, reply_markup=await one_button_keyboard(text="Подключить тариф Gold", callback="buy:gold:1"))
+    try:
+        await bot.send_message(chat_id=chat_id, text=text, reply_markup=await one_button_keyboard(text="Подключить тариф Gold", callback="buy:gold:1"))
+    except BotBlocked:
+        pass

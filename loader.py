@@ -24,7 +24,7 @@ def send_log_channel(msg):
 class TgLoggerHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
-        send_log_channel(msg)
+        # send_log_channel(msg)
 
 
 tg_handler = TgLoggerHandler()
@@ -41,7 +41,6 @@ db = Tortoise()
 
 app = FastAPI()
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-print(BASE_DIR)
 SECRET = "secret-key"
 
 templates = Jinja2Templates(directory="templates")

@@ -43,7 +43,7 @@ class UserModel(Model):
 
     user_view: fields.ReverseRelation["UserView"]
     search_settings: fields.ReverseRelation["UserSearchSettings"]
-    
+    spam_ad_ids = fields.JSONField(null=True)    
     last_verification_time: datetime = fields.DatetimeField(null=True)
     # class Meta:
     #     table = 'user'
@@ -87,6 +87,10 @@ class UsersRelations(Model):
     # class Meta:
     #     table = 'users_relations'
 
+
+# class SpamDataUser(Model):
+#     id: int = fields.IntField(pk=True)
+#     user: fields.OneToOneRelation[UserModel] = fields.OneToOneField("models.UserModel", related_name="search_settings")
 
 class UserSearchSettings(Model):
     id: int = fields.IntField(pk=True)
