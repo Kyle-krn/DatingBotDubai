@@ -95,6 +95,9 @@ async def reaction_ad_handler(call: types.CallbackQuery):
                                  user=user,
                                  target_user=target_user,
                                  relation=await view.relation,)
+        else:
+            if target_user.end_premium is None:
+                await null_premium_message(chat_id=target_user.tg_id)
     elif command == "superlike":
         if user.superlike_count <= 0:
             return await call.message.answer("У вас нет суперлайков.",reply_markup=await one_button_keyboard(text="Купить 10 суперлайков", callback="buy:likes:10"))
@@ -134,23 +137,28 @@ async def mutal_like_func(message: types.Message,
                           user: models.UserModel,
                           target_user: models.UserModel, 
                           relation: models.UsersRelations):
-    
     avatar_user = await user.avatar
     avatar_tar = await target_user.avatar
-    text_1 = "У вас новая пара!\n\n"
-    text = text_1 + await generate_ad_text(target_user=target_user, relation=await relation)
+    start_text = "У вас новая пара!\n\n"
+    end_text = "\n\nПора познакомиться, пишите: "
     
-    
+    text = start_text + await generate_ad_text(target_user=target_user, relation=await relation)
+    if target_user.tg_username is None:
+        text += "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"
+        await null_tg_username_answer(chat_id=target_user.tg_id)
+    else:
+        text += end_text + f"@{target_user.tg_username}"
     if avatar_tar.file_type.lower() in PHOTO_TYPES:
         await message.answer_photo(photo=avatar_tar.file_id, caption=text) 
     elif avatar_tar.file_type.lower() in VIDEO_TYPES:
         await message.answer_video(video=avatar_tar.file_id, caption=text)
-        
-    
-    
-    text = text_1 + await generate_ad_text(target_user=user, relation=await relation)
-    # await bot.send_message(chat_id=target_user.tg_id, text=text)
-    
+    text = start_text + await generate_ad_text(target_user=user, relation=await relation)
+    if user.tg_username is None:
+        text += "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"
+        await null_tg_username_answer(chat_id=user.tg_id)
+    else:
+        text += end_text + f"@{user.tg_username}"
+
     if avatar_user.file_type.lower() in PHOTO_TYPES:
         await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text) 
     elif avatar_user.file_type.lower() in VIDEO_TYPES:
@@ -158,4 +166,15 @@ async def mutal_like_func(message: types.Message,
 
     await models.MutualLike.create(user=user, target_user=target_user)
 
-    
+
+async def null_tg_username_answer(chat_id: int):
+    text = "Пользователю [Имя] не пришел ваш контакт, добавьте [@имя бота] в исключения, "  \
+           "для этого пройдите в меню настройки пересылки сообщений для Telegram: "  \
+           "Настройки -> Конфиденциальность -> Пересылка сообщений"
+    await bot.send_message(chat_id=chat_id, text=text)
+
+
+
+async def null_premium_message(chat_id: int):
+    text = "Тебя лайкнули, чтобы видеть профили, которым ты понравился подключи тариф Gold"
+    await bot.send_message(chat_id=chat_id, text=text, reply_markup=await one_button_keyboard(text="Подключить тариф Gold", callback="buy:gold:1"))

@@ -42,7 +42,6 @@ async def view_relations_handler(message: types.Message):
         return await message.answer("Ваш профиль еще не верифицирован.")
     elif user.end_premium is None:
         return await message.answer("У вас нет активного Gold статуса.")
-    # count_your_like = await models.UserView.filter(Q(target_user=user) & Q(like=True) & Q(user__verification=True) & Q(user__ban=False)).count()
     count_mutal_like = await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).count()
     your_likes = await rowsql_likes(user.id)
     # print(x)
@@ -59,14 +58,6 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
     queryset_cache = redis_cash_2.get(str(call.message.chat.id))
     if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
         your_likes = [i['id'] for i in await rowsql_likes(user.id)]
-        # user_views = []
-        # query = Q(target_user=user) & Q(like=True) & Q(user__verification=True) & Q(user__ban=False)
-        # targets_like_views = models.UserView.filter(query).order_by('dislike', 'count_view', '-relation__percent_compatibility')
-        # print(await targets_like_views.sql)
-        # for target_view in await targets_like_views:
-            # user_view = await models.UserView.get(Q(user=user) & Q(target_user_id=target_view.user_id))
-            # if not user_view.like:
-                # user_views.append(user_view)
         if len(your_likes) == 0:
             return await call.message.answer("Нет новых лайков.")
         user_view = await models.UserView.get(id=your_likes.pop(0))
@@ -82,32 +73,10 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
     await call.message.delete()
     target_user = await user_view.target_user
     avatar = await target_user.avatar
-    
-    # zodiak = await zodiac_sign(target_user.birthday)
-
-    # year = datetime.now().year
-    # text = f"{target_user.name}, {year-target_user.birthday.year}\n"  \
-    #        f"{zodiak}\n" \
-    #        f"🗺️ {target_user.place}\n" \
-    #        f"👫 {target_user.marital_status}\n"  \
-    #        f"Дети: "
-    # if target_user.children is True:
-    #     text += "Есть\n"
-    # elif target_user.children is False:
-    #     text += "Нет\n"
-    # elif target_user.children is None:
-    #     text += "Не скажу\n"
-    # if target_user.children_age != []:
-    #     text += "Возраст детей: " + ", ".join([str(i)+" г." for i in target_user.children_age]) + "\n"
-    # target_hobbies = await target_user.hobbies.all()
-    # if target_hobbies:
-    #     text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
-    # relation = await user_view.
-    # text += f"Процент совместимости: {relation.percent_compatibility}%"
+    if target_user.verification == False or avatar.file_id is None:
+        return await view_your_likes_handler(call)
     text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
-    # photo_types = ('jpeg', 'jpg', "webm", "png")
-    # video_types = ("mp4", "avi")
-    
+
     if avatar.file_type.lower() in PHOTO_TYPES:
         await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count)) 
     elif avatar.file_type.lower() in VIDEO_TYPES:

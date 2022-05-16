@@ -49,11 +49,11 @@ class BanMiddleware(BaseMiddleware):
             user = await models.UserModel.get(tg_id=message.chat.id)
         except Exception as e:
             return
-
         if user.tg_username != message.chat.username:
             user.tg_username = message.chat.username
-            if user.name != message.chat.full_name:
-                user.name = message.chat.full_name
+            await user.save()
+        if user.name != message.chat.full_name:
+            user.name = message.chat.full_name
             await user.save()
             
         if user.ban is True:
