@@ -129,6 +129,14 @@ async def del_hobbie_handler(request: Request, id: int, hobbies: list = Form(...
         f'/get_user/{id}', 
         status_code=status.HTTP_302_FOUND)
 
+@user_router.post("/append_superlike/{id}")
+async def append_superlikes(request: Request, id: int, superlike_count: int = Form(...), log: str = Depends(get_current_username)):
+    user = await models.UserModel.get(id=id)
+    user.superlike_count += superlike_count
+    await user.save()
+    return RedirectResponse(
+        f'/get_user/{id}', 
+        status_code=status.HTTP_302_FOUND)
 
 @user_router.post("/del_avatar/{id}")
 async def del_hobbie_handler(request: Request, id: int, msg: Optional[str] = Form(None), log: str = Depends(get_current_username)):
