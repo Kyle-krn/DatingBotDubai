@@ -204,6 +204,16 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
     return f"/get_user/{id}"
 
 
+@user_router.get("/del_likes/{id}", response_class=RedirectResponse)
+async def verif_user(request: Request, id: int, log: str = Depends(get_current_username)):
+    user = await models.UserModel.get(id=id)
+    user.spam_ad_ids = None
+    await user.save()
+    await models.UserView.filter(Q(user=user) & Q(like=True)).update(like=False, superlike=False)
+    await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).delete()
+    return f"/get_user/{id}"
+
+
 
 @user_router.post("/del_hobbie/{id}")
 async def del_hobbie_handler(request: Request, id: int, hobbies: list = Form(...), log: str = Depends(get_current_username)):
