@@ -29,5 +29,58 @@
         </tbody>
     </table>
 </div>
+
+
+
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center pagination-lg">
+    <li class="page-item">
+      {% if previous_page %}
+      <a class="page-link" href="?page={{previous_page}}&{{query_params}}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+        <span class="sr-only">Previous</span>
+      </a>
+      {% endif %}
+    </li>
+
+    {% if last_page - page >= 2 %}
+        {% if page > 2 %}
+          <li class="page-item"><a class="page-link" href="?page=1&{{query_params}}">1</a></li>
+          <li class="page-item"><a class="page-link" href="" disabled="disabled">...</a></li>
+        {% endif %}
+        <li class="page-item active"><a class="page-link" href="">{{page}} </a></li>
+        <li class="page-item"><a class="page-link" href="?page={{page+1}}&{{query_params}}">{{page+1}}</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{page+2}}&{{query_params}}">{{page+2}}</a></li>
+        {% if last_page - page != 2 %}
+          <li class="page-item"><a class="page-link" href="" disabled="disabled">...</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{last_page}}&{{query_params}}">{{last_page}}</a></li>
+        {% endif %}
+      {% elif last_page - page >= 1 %}
+        {% if page > 2 %}
+          <li class="page-item"><a class="page-link" href="?page=1&{{query_params}}">1</a></li>
+          <li class="page-item"><a class="page-link" href="" disabled="disabled">...</a></li>
+        {% endif %}
+        <li class="page-item active"><a class="page-link" href="">{{page}}</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{page+1}}&{{query_params}}">{{page+1}}</a></li>
+      {% elif last_page - page >= 0 %}
+        {% if page > 2 %}
+            <li class="page-item"><a class="page-link" href="?page=1&{{query_params}}">1</a></li>
+            <li class="page-item"><a class="page-link" href="" disabled="disabled">...</a></li>
+        {% endif %}
+        <li class="page-item active"><a class="page-link" href="{{page}}">{{page}}</a></li>
+      {% endif %}
+
+    
+      {% if next_page %}
+      <a class="page-link" href="?page={{next_page}}&{{query_params}}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+        <span class="sr-only">Next</span>
+      {% endif %}
+      </a>
+    </li>
+  </ul>
+</nav>
+
+
 </div>
 {% endblock %}

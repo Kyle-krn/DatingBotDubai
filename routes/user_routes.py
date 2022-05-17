@@ -11,19 +11,85 @@ from dateutil.relativedelta import *
 import starlette.status as status
 from aiogram.utils.exceptions import BotBlocked
 from routes.login_routes import get_current_username
+from urllib.parse import urlencode
+
 user_router = APIRouter()
 
 
+def isInteger(N):
+   
+    # Convert float value
+    # of N to integer
+    X = int(N)
+ 
+    temp2 = N - X
+ 
+    # If N is not equivalent
+    # to any integer
+    if (temp2 > 0):
+        return False
+         
+    return True
+
 @user_router.get("/", response_class=HTMLResponse)
-async def list_user(request: Request, verif: bool = False, username: str = None, log: str = Depends(get_current_username)):
+async def list_user(request: Request, 
+                    page: int = 1,
+                    verif: bool = False, 
+                    username: str = None, 
+                    log: str = Depends(get_current_username)):
+    
+
+    
     if verif is True:
-        users = await models.UserModel.filter(Q(verification=False) & Q(ban=False)).order_by('-last_verification_time', 'id')
+        users = models.UserModel.filter(Q(verification=False) & Q(ban=False)).order_by('-last_verification_time', 'id')
     
     if username:
-        users = await models.UserModel.filter(tg_username__icontains=username)
+        users = models.UserModel.filter(tg_username__icontains=username)
 
     if verif is False and not username:
-        users = await models.UserModel.all().order_by('id')
+        users = models.UserModel.all().order_by('id')
+    
+    params = request.query_params._dict
+    
+    if 'page' in params:
+        del params['page']
+
+    
+    limit = 3
+    offset = (page - 1) * limit
+    count_users = await users.count()
+    last_page = count_users/limit
+    if count_users % limit == 0:
+        last_page = int(last_page)
+    elif count_users % limit != 0:
+        last_page = int(last_page + 1)
+
+    users = await users.offset(offset).limit(limit)
+    query_params = urlencode(params)
+    previous_page = page-1
+    # params['page'] = previous_page
+    # previous_url = urlencode(params)
+
+    next_page = page+1
+    # params['page'] = next_page
+    # next_url = urlencode(params)
+    # print(next_url)
+    # params['page'] = 1
+    # start_url = urlencode(params)
+    
+
+    # params['page'] = last_page
+    # end_url = urlencode(params)
+
+    if page == 1:
+        previous_page = None
+        # previous_url = None
+    if page == last_page:
+        next_page = None
+        # next_url = None
+    if page > last_page:
+        pass
+        # return redirect(url_for('list_users_view', **copy_params))
     data_users = [
         {"id": i.id,
         "username": i.tg_username,
@@ -33,7 +99,16 @@ async def list_user(request: Request, verif: bool = False, username: str = None,
         "verification": "✅" if i.verification is True else "❌"
         } for i in users
     ]
-    return templates.TemplateResponse("list_users.html", {"request": request, "users": data_users   })
+    
+    context = {"request": request, 
+               "users": data_users,
+               "previous_page": previous_page,
+               "next_page": next_page,
+               "page": page,
+               "last_page": last_page,
+               "query_params": query_params}
+
+    return templates.TemplateResponse("list_users.html", context)
 
 
 
