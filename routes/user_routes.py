@@ -55,7 +55,7 @@ async def list_user(request: Request,
         del params['page']
 
     
-    limit = 3
+    limit = 30
     offset = (page - 1) * limit
     count_users = await users.count()
     last_page = count_users/limit
