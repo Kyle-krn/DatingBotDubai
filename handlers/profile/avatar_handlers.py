@@ -53,15 +53,18 @@ async def back_send_document_handler(call: types.CallbackQuery, state: FSMContex
 
 @dp.message_handler(content_types=['document', 'photo', 'video', 'text'], state=ProfileSettingsState.avatar)
 async def upload_file_handler(message: types.Message, state: FSMContext):
-    print(message.text)
-    if message.text:
-        if message.text in KEYBOARD_TEXT:
-            await state.finish()    
-            return await redirect_handler(message=message, button_text=message.text)
-        else:
-            return
     user = await models.UserModel.get(tg_id=message.chat.id)
     user_data = await state.get_data()
+    if message.text:
+        if message.text in KEYBOARD_TEXT and user.end_registration is True:
+            await state.finish()    
+            return await redirect_handler(message=message, button_text=message.text)
+        
+        return await message.answer(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(user_data['status_user']))
+        # else:
+        #     return
+    
+    
     static_path = "/static/"
     folder_path = f'avatar_telegram/{user.id}/'
     full_path = static_path + folder_path
