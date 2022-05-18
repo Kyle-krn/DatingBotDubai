@@ -148,6 +148,7 @@ async def mutal_like_func(message: types.Message,
     end_text = "\n\nПора познакомиться, пишите: "
     
     text = start_text + await generate_ad_text(target_user=target_user, relation=await relation)
+    
     if target_user.tg_username is None:
         text += "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"
         await null_tg_username_answer(chat_id=target_user.tg_id)
@@ -157,6 +158,7 @@ async def mutal_like_func(message: types.Message,
         await message.answer_photo(photo=avatar_tar.file_id, caption=text) 
     elif avatar_tar.file_type.lower() in VIDEO_TYPES:
         await message.answer_video(video=avatar_tar.file_id, caption=text)
+
     text = start_text + await generate_ad_text(target_user=user, relation=await relation)
     if user.tg_username is None:
         text += "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"

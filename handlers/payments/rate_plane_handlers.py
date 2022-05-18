@@ -18,7 +18,10 @@ async def rate_plane_handler(message: types.Message):
            "- неограниченная возможность ставить лайки (без тарифа 3 лайка в день)\n\n" \
            "Super Like - 1$ за 10 суперлайков\n" \
            "- Твой суперлайк увидят сразу, даже если у пользователя нет тарифа Gold\n" \
-           "- увеличивает вероятность взаимного лайнка в несколько раз!\n"
+           "- увеличивает вероятность взаимного лайнка в несколько раз!\n\n"
+
+    if user.end_premium is not None:
+        text += f"<b>Ваш Gold статус активен до {user.end_premium.strftime('%d.%m.%Y')}</b>"
     await message.answer(text=text, reply_markup=await rate_keyboard())
 
 
