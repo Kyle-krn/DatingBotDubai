@@ -1,3 +1,4 @@
+from typing import Union
 from loader import dp
 from models import models
 from aiogram import types
@@ -8,7 +9,7 @@ from .views_self_profile_handlers import profile_handler
 from aiogram import exceptions
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_purp')
-async def purp_handler(call: types.CallbackQuery, change: bool = None):
+async def purp_handler(call: Union[types.CallbackQuery, types.Message], change: bool = None):
     if isinstance(call, types.Message):
         user = await models.UserModel.get(tg_id=call.chat.id)
     else:

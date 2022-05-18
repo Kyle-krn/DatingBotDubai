@@ -6,6 +6,7 @@ from aiogram.dispatcher import FSMContext
 from handlers.profile.views_self_profile_handlers import profile_handler
 from handlers.search_settings.view_settings_handler import settings_handler
 from handlers.dating.dating_handlers import search_dating
+
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'cancel_state', state='*')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'cancel_state_settings', state='*')
 async def cancel_state_handler(call: types.CallbackQuery, state: FSMContext):

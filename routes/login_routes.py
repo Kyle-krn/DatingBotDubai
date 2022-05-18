@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Request, Response
-from loader import templates
 from fastapi import Depends,status # Assuming you have the FastAPI class for routing
-from fastapi.responses import RedirectResponse,HTMLResponse
-from fastapi.security import OAuth2PasswordRequestForm
+
 
 
 login_router = APIRouter()

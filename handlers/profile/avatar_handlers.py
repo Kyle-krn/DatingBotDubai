@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Union
 from data.config import KEYBOARD_TEXT, PHOTO_TYPES, VIDEO_TYPES
 from handlers.cancel_state_handler import redirect_handler
 from loader import dp, BASE_DIR, bot
@@ -14,19 +15,28 @@ import os
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'send_ava')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_ava')
-async def send_document_handler(call: types.CallbackQuery):
+async def send_document_handler(call: Union[types.CallbackQuery, types.Message]):
     await ProfileSettingsState.avatar.set()
     state = dp.get_current().current_state()
-    if call.data.split(':')[0] == 'send_ava':
+    if isinstance(call, types.Message) or call.data.split(':')[0] == 'send_ava':
         status_user='new'
-        user = await models.UserModel.get(tg_id=call.message.chat.id)
+        if isinstance(call, types.Message):
+            tg_id=call.chat.id
+        else:
+            tg_id=call.message.chat.id
+
+        user = await models.UserModel.get(tg_id=tg_id)
         user_purp = await user.purp_dating.all()
         user_purp = [i.title_purp for i in user_purp]
         user_purp = ", ".join(user_purp)
-        await call.message.edit_text(text=f"Ваши цели знакомства: {user_purp}")
-        
         await state.update_data(status_user=status_user)
-        await call.message.answer(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(status_user))
+        if isinstance(call, types.Message):
+            await call.answer(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(status_user))
+        else:
+            await call.message.edit_text(text=f"Ваши цели знакомства: {user_purp}")
+            await call.message.answer(text="Пришли, пожалуйста, фото или видео☺️", reply_markup=await avatar_keyboard(status_user))
+
+        
     else:
         status_user = 'old'
         await state.update_data(status_user=status_user)

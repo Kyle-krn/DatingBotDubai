@@ -1,3 +1,4 @@
+from typing import Union
 from handlers.search_settings.view_settings_handler import settings_handler
 from loader import dp
 from models import models
@@ -9,7 +10,7 @@ from handlers.calculation_relations.recalculation_relations import recalculation
 
 # @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'remove_dubai')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_remove_dubai')
-async def dubai_handler(call: types.CallbackQuery):
+async def dubai_handler(call: Union[types.CallbackQuery, types.Message]):
     if isinstance(call, types.Message):
         return await call.answer("Планируете переезд в Дубаи?", reply_markup=await dubai_answer_keyboard())
     else:
@@ -45,12 +46,16 @@ async def remove_dubai_handler(call: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'settings_companion_dubai')
 async def settings_companion_place_hanlder(call: types.CallbackQuery):
-    user = await models.UserModel.get(tg_id=call.message.chat.id)
     prefix = ''
-    if call.data.split(':')[0] == 'settings_companion_dubai':
-        prefix = "c_"
-        await call.answer()
-    return await call.message.answer("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user, prefix))
+    if isinstance(call, types.CallbackQuery):
+        user = await models.UserModel.get(tg_id=call.message.chat.id)
+        if call.data.split(':')[0] == 'settings_companion_dubai':
+            prefix = "c_"
+            await call.answer()
+        return await call.message.answer("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user, prefix))
+    else:
+        user = await models.UserModel.get(tg_id=call.chat.id)
+        return await call.answer("Укажите с кем вы заинтересованы в знакомствах? (можно выбрать несколько вариантов)", reply_markup=await companion_dubai_keyboard(user, prefix))
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'companion_dubai')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'c_companion_dubai')

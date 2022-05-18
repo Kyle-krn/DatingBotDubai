@@ -1,4 +1,4 @@
-from ctypes import Union
+from typing import Union
 from datetime import datetime
 from typing import Any, List
 from data.config import PHOTO_TYPES, VIDEO_TYPES
@@ -20,7 +20,7 @@ redis_cash_2 = redis.Redis(db=2)
 @dp.message_handler(commands=['likes'])
 @dp.message_handler(regexp="^(💑 Симпатии)$")
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'back_likes')
-async def view_relations_handler(message: types.Message):
+async def view_relations_handler(message: Union[types.CallbackQuery, types.Message]):
     text = '<b>"Тебя лайкнули"</b> - когда пользователи видят твою анкету ' \
            'и нажимают лайк, они попадают в эту вкладку.\n\n' \
            '<b>"Взаимные лайки"</b> - когда пользователь поставил лайк тебе, ' \

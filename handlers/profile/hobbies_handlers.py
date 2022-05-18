@@ -1,3 +1,4 @@
+from typing import Union
 from handlers.calculation_relations.relations_handlers import check_hobbies
 from loader import dp, bot
 from aiogram import types
@@ -14,7 +15,7 @@ from data.config import KEYBOARD_TEXT
 from handlers.cancel_state_handler import redirect_handler
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "change_hobbies")
-async def set_hobbies_state(call: types.CallbackQuery):
+async def set_hobbies_state(call: Union[types.CallbackQuery, types.Message]):
     top_hobbies = await get_top_hobbies()
     name_top_hobbies = []
     for item in top_hobbies[:10]:

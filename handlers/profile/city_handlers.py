@@ -1,4 +1,5 @@
 from cProfile import Profile
+from typing import Union
 from models import models
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -11,18 +12,28 @@ from .dubai_handlers import dubai_handler
 from handlers.calculation_relations.recalculation_relations import recalculation_location
 from .views_self_profile_handlers import profile_handler
 
+
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "change_place")
-async def city_set_state_handler(call: types.CallbackQuery):
+async def city_set_state_handler(call: Union[types.CallbackQuery, types.Message]):
     # await call.message.delete()
     await ProfileSettingsState.city.set()
     state = dp.get_current().current_state()
-    if call.data.split(':')[0] == "change_place":
-        status_user = "old"
-        await call.answer()
+    if isinstance(call, types.CallbackQuery):
+        if call.data.split(':')[0] == "change_place":
+            status_user = "old"
+            await call.answer()
+        else:
+            status_user = "new"
     else:
         status_user = "new"
     await state.update_data(status_user=status_user)
-    await call.message.answer(text="Введите ваш город", reply_markup=await geolocation_keyboard(status_user=status_user))
+    if isinstance(call, types.CallbackQuery):
+        await call.message.answer(text="Введите ваш город", reply_markup=await geolocation_keyboard(status_user=status_user))
+    else:
+        await call.answer(text="Введите ваш город", reply_markup=await geolocation_keyboard(status_user=status_user))
+
+# async def city_set_state_handler_message(message: types.Message):
+
 
 @dp.message_handler(lambda message: message.text == '🛑 Отмена', state=ProfileSettingsState.city)
 async def city_cancel_state_handler(message: types.Message, state: FSMContext):

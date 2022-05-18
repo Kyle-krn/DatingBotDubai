@@ -1,3 +1,4 @@
+from typing import Union
 from data.config import KEYBOARD_TEXT
 from handlers.calculation_relations.relations_handlers import check_age
 from handlers.cancel_state_handler import redirect_handler
@@ -16,24 +17,29 @@ from tortoise.queryset import Q
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'bday')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_bday')
-async def birthday_handler(call: types.CallbackQuery):
+async def birthday_handler(call: Union[types.CallbackQuery, types.Message]):
     await ProfileSettingsState.bday.set()
     state = dp.get_current().current_state()
-    if call.data.split(':')[0] == 'bday':
+    if isinstance(call, types.Message) or call.data.split(':')[0] == 'bday':
         status_user = "new"
         keyboard = None
-        user = await models.UserModel.get(tg_id=call.message.chat.id)
-        interest_place_user = await user.interest_place_companion.all()
-        text_place = ", ".join([i.title_interest for i in interest_place_user])
-        await call.message.edit_text(text=f"Вы выбрали: {text_place}", reply_markup=None)
+        if isinstance(call, types.CallbackQuery):
+            user = await models.UserModel.get(tg_id=call.message.chat.id)
+            interest_place_user = await user.interest_place_companion.all()
+            text_place = ", ".join([i.title_interest for i in interest_place_user])
+            await call.message.edit_text(text=f"Вы выбрали: {text_place}", reply_markup=None)
+        else:
+            user = await models.UserModel.get(tg_id=call.chat.id)
     else:
         await call.answer()
         status_user = "old"
         keyboard = await one_button_keyboard(text="Отмена", callback="cancel_state:")
     await state.update_data(status_user=status_user)
     
-    await call.message.answer("Укажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
-
+    if isinstance(call, types.CallbackQuery):
+        await call.message.answer("Укажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
+    else:
+        await call.answer("Укажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
 
 @dp.message_handler(state=ProfileSettingsState.bday)
 async def input_bday_handler(message: types.Message, state: FSMContext):

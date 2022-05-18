@@ -5,11 +5,10 @@ from models import models
 from keyboards.reply_keyboards.keyboards import geolocation_keyboard
 from .city_handlers import city_set_state_handler
 
+
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'gender')
 async def gender_handler(call: types.CallbackQuery):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
-
-
     gender = call.data.split(':')[1]
     if gender == 'male':
         user.male = True

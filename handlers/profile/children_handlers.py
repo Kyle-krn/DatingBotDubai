@@ -12,19 +12,23 @@ from handlers.calculation_relations.recalculation_relations import recalculation
 from tortoise.queryset import Q
 from .views_self_profile_handlers import profile_handler
 
+
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_children')
 async def children_handler(call: types.CallbackQuery):
     text = "У вас есть дети? Информация будет использоваться для поиска более подходящих вам знакомств."
-    if call.data.split(':')[0] == 'change_children':
+    if isinstance(call, types.CallbackQuery) and call.data.split(':')[0] == 'change_children':
         await call.message.delete()
         keyboard = await children_keyboard(prefix_callback="c_")
         return await call.message.answer(text=text, 
                                          reply_markup=keyboard)
     else:
         keyboard = await children_keyboard()
-        return await call.message.edit_text(text=text, 
+        if isinstance(call, types.CallbackQuery):
+            return await call.message.edit_text(text=text, 
+                                            reply_markup=keyboard)
+        else:
+            return await call.edit_text(text=text, 
                                         reply_markup=keyboard)
-
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'add_children')
