@@ -58,32 +58,66 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
         return await call.message.answer("У вас нет активного Gold статуса.", 
                                          reply_markup=await one_button_keyboard(text="Купить Gold статус", 
                                                                                 callback="buy:gold:1"))
-    queryset_cache = redis_cash_2.get(str(call.message.chat.id))
-    if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
-        your_likes = [i['id'] for i in await rowsql_likes(user.id)]
-        if len(your_likes) == 0:
-            return await call.message.answer("Нет новых лайков.")
-        user_view = await models.UserView.get(id=your_likes.pop(0))
-        # user_view: models.UserView = user_views.pop(0)
-        redis_cash_2.set(str(call.message.chat.id), json.dumps(your_likes), 5*60)
-    else:
-        queryset_cache: List[models.UserView.id] = json.loads(queryset_cache)
-        user_view = await models.UserView.get(id = queryset_cache.pop(0))
-        ttl = redis_cash_2.ttl(str(call.message.chat.id))
-        if ttl > 0:
-                redis_cash_2.set(str(call.message.chat.id), json.dumps(queryset_cache), ttl)
-    await user_view.save()
-    await call.message.delete()
+
+    your_likes = [i['id'] for i in await rowsql_likes(user.id)]
+    if len(your_likes) == 0:
+        return await call.message.answer("Нет лайков.")
+    count_your_likes = len(your_likes)
+
+    offset = int(call.data.split(':')[1])
+    # offset = -1
+    if offset >= count_your_likes:
+        offset = 0
+    if offset < 0:
+        offset = count_your_likes - 1
+    user_view_id = your_likes[offset:][0]
+    user_view = await models.UserView.get(id=user_view_id)
     target_user = await user_view.target_user
     avatar = await target_user.avatar
     if target_user.verification == False or avatar.file_id is None:
+        offset += 1
+        call.data = f"your_likes:{offset}"
         return await view_your_likes_handler(call)
+
     text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
 
+    keyboard = await like_keyboard(callback='y_like_reaction',
+                                   view_id=user_view.id, 
+                                   superlike_count=user.superlike_count,
+                                   offset=offset)
     if avatar.file_type.lower() in PHOTO_TYPES:
-        await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count)) 
+        await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=keyboard) 
     elif avatar.file_type.lower() in VIDEO_TYPES:
-        await call.message.answer_video(video=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count))
+        await call.message.answer_video(video=avatar.file_id, caption=text, reply_markup=keyboard)
+
+
+    
+    # queryset_cache = redis_cash_2.get(str(call.message.chat.id))
+    # if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
+    #     your_likes = [i['id'] for i in await rowsql_likes(user.id)]
+    #     if len(your_likes) == 0:
+    #         return await call.message.answer("Нет новых лайков.")
+    #     user_view = await models.UserView.get(id=your_likes.pop(0))
+    #     # user_view: models.UserView = user_views.pop(0)
+    #     redis_cash_2.set(str(call.message.chat.id), json.dumps(your_likes), 5*60)
+    # else:
+    #     queryset_cache: List[models.UserView.id] = json.loads(queryset_cache)
+    #     user_view = await models.UserView.get(id = queryset_cache.pop(0))
+    #     ttl = redis_cash_2.ttl(str(call.message.chat.id))
+    #     if ttl > 0:
+    #             redis_cash_2.set(str(call.message.chat.id), json.dumps(queryset_cache), ttl)
+    # # await user_view.save()
+    # # await call.message.delete()
+    # target_user = await user_view.target_user
+    # avatar = await target_user.avatar
+    # if target_user.verification == False or avatar.file_id is None:
+    #     return await view_your_likes_handler(call)
+    # text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
+
+    # if avatar.file_type.lower() in PHOTO_TYPES:
+    #     await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count)) 
+    # elif avatar.file_type.lower() in VIDEO_TYPES:
+    #     await call.message.answer_video(video=avatar.file_id, caption=text, reply_markup=await like_keyboard(callback='y_like_reaction', view_id=user_view.id, superlike_count=user.superlike_count))
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "mutal_likes")
@@ -92,7 +126,6 @@ async def mutal_likes_handler(call: types.CallbackQuery):
     offset = int(call.data.split(':')[1])
     query = Q(Q(user=user) | Q(target_user=user)) & Q(Q(user__verification=True) & Q(target_user__verification=True))
     count_mutal_like = await models.MutualLike.filter(query).count()
-    print(count_mutal_like)
     if offset >= count_mutal_like:
         offset = 0
     if offset < 0:

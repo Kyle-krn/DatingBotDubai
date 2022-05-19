@@ -13,13 +13,12 @@ import json
 from handlers.view_relations.views_handlers import view_your_likes_handler
 import tortoise
 from aiogram.utils.exceptions import BotBlocked
+
 redis_cash_1 = redis.Redis(db=1)
 
 @dp.message_handler(commands=['dating'])
 @dp.message_handler(regexp="^(👥 Найти пару)$")
 async def search_dating(message: types.Message, last_view_id: int = None):
-    # photo_types = ('jpeg', 'jpg', "webm", "png")
-    # video_types = ("mp4", "avi")
     user = await models.UserModel.get(tg_id=message.chat.id)
     if user.end_registration is False:
         return await message.answer("Вы не закончили регистрацию")
@@ -69,8 +68,12 @@ async def search_dating(message: types.Message, last_view_id: int = None):
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'reaction')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'y_like_reaction')
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'single_reaction')
 async def reaction_ad_handler(call: types.CallbackQuery):
+    command = call.data.split(':')[1]
     view_id = call.data.split(':')[2]
+    if call.data.split(':')[0] == 'y_like_reaction':
+        offset = int(call.data.split(':')[3])
     view = await models.UserView.get(id=view_id)
     user = await view.user
     target_user = await view.target_user
@@ -78,23 +81,25 @@ async def reaction_ad_handler(call: types.CallbackQuery):
     if view.like or view.superlike:
         await call.message.delete()
         return await call.answer("Вы уже реагировали на данное объявление.")        
-    user = await models.UserModel.get(tg_id=call.message.chat.id)
-    command = call.data.split(':')[1]
-    # print(call.data)
+    # user = await models.UserModel.get(tg_id=call.message.chat.id)
+
     if command == "like":
         text = "LIKE 👍\n\n"
         if not user.end_premium:
             if user.free_likes <= 0:
-                return await call.message.answer("У вас закончились лайки на сегодня, вы можете купить Gold статус и ставить неограниченное число лайков.",
-                                                  reply_markup=await one_button_keyboard(text="Купить Gold на 1 месяц", callback="buy:gold:1"))
+                return await call.message.answer(text="У вас закончились лайки на сегодня, вы можете купить Gold статус и ставить неограниченное число лайков.",
+                                                 reply_markup=await one_button_keyboard(text="Купить Gold на 1 месяц", 
+                                                                                        callback="buy:gold:1"))
             user.free_likes -= 1
             await user.save()
         view.like = True
         if view.like and reverse_view.like:
-            await mutal_like_func(message = call.message,
-                                 user=user,
-                                 target_user=target_user,
-                                 relation=await view.relation,)
+            await call.message.delete()
+            await view.save()
+            return await mutal_like_func(message=call.message,
+                                         user=user,
+                                         target_user=target_user,
+                                         relation=await view.relation,)
         else:
             if target_user.end_premium is None:
                 await null_premium_message(chat_id=target_user.tg_id)
@@ -105,37 +110,56 @@ async def reaction_ad_handler(call: types.CallbackQuery):
             text = "SUPERLIKE ⭐\n\n"
             view.like = True
             view.superlike = True
-            text_1 = f"Пользователь @{user.tg_username} отправил вам суперлайк!\n\n"
-            text_msg = text_1 + await generate_ad_text(target_user=target_user, relation=await view.relation)
+            if view.like and reverse_view.like:
+                await call.message.delete()
+                await view.save()
+                return await mutal_like_func(message = call.message,
+                                             user=user,
+                                             target_user=target_user,
+                                             relation=await view.relation)
+
+            start_text_msg = f"Пользователь {user.name} отправил вам суперлайк!\n\n"
+            end_text_msg = f"\n\nХотите с ним познакомиться? Пишите: @{user.tg_username}"
+            if user.tg_username is None:
+                end_text_msg = "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"
+                await null_tg_username_answer(chat_id=user.tg_id)
+           
+            text_msg = start_text_msg + await generate_ad_text(target_user=target_user, relation=await view.relation) + end_text_msg
             avatar_tar = await target_user.avatar
             avatar_user = await user.avatar
+            keyboard = await like_keyboard(view_id=reverse_view.id, superlike_count=target_user.superlike_count, callback="single_reaction")
             if avatar_user.file_type.lower() in PHOTO_TYPES:
                 try:
-                    await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text_msg) 
+                    await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text_msg, reply_markup=keyboard) 
                 except BotBlocked:
                     pass
             elif avatar_user.file_type.lower() in VIDEO_TYPES:
                 try:
-                    await bot.send_video(chat_id=target_user.tg_id, video=avatar_tar.file_id, caption=text_msg)
+                    await bot.send_video(chat_id=target_user.tg_id, video=avatar_tar.file_id, caption=text_msg, reply_markup=keyboard)
                 except BotBlocked:
                     pass
-            
             user.superlike_count -= 1
             await user.save()
 
     elif command == "dislike":
         view.dislike = True
         text = "DISLIKE 👎 \n\n"
+
     await view.save()
     caption = call.message.caption
     caption = text+caption
     await call.message.edit_caption(caption=caption)
-    if call.data.split(':')[0] == 'reaction':
-        # if call.message.photo:
+    if call.data.split(':')[0] != 'single_reaction':
+        if view.superlike is False:
+            if call.data.split(':')[0] == 'reaction':
+                return await search_dating(call.message, last_view_id=view_id)
+            else:
+                call.data = f"your_likes:{offset+1}"
+                return await view_your_likes_handler(call, last_view_id=view_id)
+        else:
+            return await call.message.answer(f"{target_user.name} получил ваш контакт!")
         
-        return await search_dating(call.message, last_view_id=view_id)
-    else:
-        return await view_your_likes_handler(call, last_view_id=view_id)
+
 
 
 async def mutal_like_func(message: types.Message, 

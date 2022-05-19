@@ -18,14 +18,4 @@ async def test_group(message: types.Message):
 
 @dp.message_handler(commands=['test'])
 async def test_group(message: types.Message):
-    user = await UserModel.get_or_none(id=123)
-    settings = await user.search_settings
-
-    tar_user = await UserModel.get_or_none(id=128)
-    tar_settings = await tar_user.search_settings
-    year_now = datetime.now().year
-    old_user = year_now - user.birthday.year
-
-    old_tar = year_now - tar_user.birthday.year
-    x = await check_age(old_user=old_user, user=user, target_user=tar_user)
-    x = await check_age(old_user=old_tar, user=tar_user, target_user=user)
+    await message.answer(text='<a href="tg://resolve?domain=examplebot&startgroup=true">Telegram</a>')
