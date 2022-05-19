@@ -2,7 +2,7 @@ import asyncio
 import aioschedule
 from datetime import datetime, timedelta
 from data.config import PHOTO_TYPES, VIDEO_TYPES
-from keyboards.inline.inline_keyboards import like_keyboard
+from keyboards.inline.inline_keyboards import like_keyboard, one_button_keyboard
 from models import models
 from aiogram import Bot
 from tortoise.queryset import Q
@@ -31,12 +31,19 @@ async def spam_motivation_message(bot: Bot):
                                                            month=local_time_user.month, 
                                                            year=local_time_user.year,
                                                            hour=22):
+            avatar = await user.avatar
             if user.end_registration is False:
                 try:
                     await bot.send_message(chat_id=user.tg_id, text="Тект для тех кто не закончил регу")
                 except BotBlocked:
                     pass
                 continue
+            elif avatar.file_id is None:
+                    text =  "Мы заметили, что у тебя все еще нет аватарки! \n"   \
+                       "Без фотографии профиля ты не будешь появляться в ленте других пользователей"  \
+                       ", не будешь получать лайки и ни с кем не познакомишься :("  \
+                       "Пожалуйста установите фотографию профиля по кнопке добавить фото"
+                    return await bot.send_message(chat_id=user.tg_id, text=text, reply_markup=await one_button_keyboard(text="Добавить фото", callback="change_ava:"))
             elif user.verification is True:
                 your_likes_view = await rowsql_likes(user_id=user.id)
                 likes_view = None
