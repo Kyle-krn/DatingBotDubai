@@ -17,3 +17,6 @@ db = Tortoise()
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
+
+
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))

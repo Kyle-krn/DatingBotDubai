@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Union
-from data.config import KEYBOARD_TEXT, PHOTO_TYPES, VIDEO_TYPES, BASE_DIR
+from data.config import KEYBOARD_TEXT, PHOTO_TYPES, VIDEO_TYPES
 from handlers.cancel_state_handler import redirect_handler
-from loader import dp, bot
+from loader import dp, bot, BASE_DIR
 from models import models
 from aiogram import types
 from aiogram.dispatcher import FSMContext

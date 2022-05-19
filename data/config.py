@@ -46,4 +46,3 @@ KEYBOARD_TEXT = ["👥 Найти пару", "👤 Профиль", "💑 Сим
 ADMIN_LOGIN = env.str("ADMIN_LOGIN")
 ADMIN_PSW = env.str("ADMIN_PSW")
 
-BASE_DIR = os.path.dirname(os.path.realpath(__file__))
