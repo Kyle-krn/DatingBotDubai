@@ -7,8 +7,8 @@ async def like_keyboard(view_id: int, superlike_count: int, callback: str = 'rea
                  types.InlineKeyboardButton(text=f"⭐({superlike_count})", callback_data=f"{callback}:superlike:{view_id}:{offset}"), 
                  types.InlineKeyboardButton(text="👎", callback_data=f"{callback}:dislike:{view_id}:{offset}"))
     if callback == "y_like_reaction":
-        keyboard.add(types.InlineKeyboardButton(text="⬅️", callback_data=f"your_likes:{offset-1}"),
-                 types.InlineKeyboardButton(text="➡️", callback_data=f"your_likes:{offset+1}"))    
+        keyboard.add(types.InlineKeyboardButton(text="⬅️", callback_data=f"offset_your_likes:{offset-1}"),
+                 types.InlineKeyboardButton(text="➡️", callback_data=f"offset_your_likes:{offset+1}"))    
     return keyboard
 
 

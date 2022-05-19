@@ -43,7 +43,6 @@ async def view_relations_handler(message: Union[types.CallbackQuery, types.Messa
     query = Q(Q(user=user) | Q(target_user=user)) & Q(Q(user__verification=True) & Q(target_user__verification=True))
     count_mutal_like = await models.MutualLike.filter(query).count()
     your_likes = await rowsql_likes(user.id)
-    # print(x)
     if isinstance(message, types.CallbackQuery):
         await message.message.delete()
         return await message.message.answer(text, reply_markup=await view_relation_keyboard(count_your_like=len(your_likes), count_mutal_like=count_mutal_like))
@@ -52,14 +51,15 @@ async def view_relations_handler(message: Union[types.CallbackQuery, types.Messa
 
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "your_likes")
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == "offset_your_likes")
 async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int = None):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
     if user.end_premium is None:
         return await call.message.answer("У вас нет активного Gold статуса.", 
                                          reply_markup=await one_button_keyboard(text="Купить Gold статус", 
                                                                                 callback="buy:gold:1"))
-
-    your_likes = [i['id'] for i in await rowsql_likes(user.id)]
+    your_likes = [i['id'] for i in await rowsql_likes(user.id) if i['id'] != last_view_id]
+    print(your_likes)
     if len(your_likes) == 0:
         return await call.message.answer("Нет лайков.")
     count_your_likes = len(your_likes)
@@ -85,6 +85,8 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
                                    view_id=user_view.id, 
                                    superlike_count=user.superlike_count,
                                    offset=offset)
+    if call.data.split(':')[0] == 'offset_your_likes':
+        await call.message.delete()
     if avatar.file_type.lower() in PHOTO_TYPES:
         await call.message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=keyboard) 
     elif avatar.file_type.lower() in VIDEO_TYPES:
