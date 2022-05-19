@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
-from handlers.calculation_relations.relations_handlers import check_age, check_children, check_hobbies
 from models import models
 from tortoise.queryset import Q
 from fastapi import Depends, Form, Request
@@ -16,45 +15,22 @@ from urllib.parse import urlencode
 user_router = APIRouter()
 
 
-def isInteger(N):
-   
-    # Convert float value
-    # of N to integer
-    X = int(N)
- 
-    temp2 = N - X
- 
-    # If N is not equivalent
-    # to any integer
-    if (temp2 > 0):
-        return False
-         
-    return True
-
 @user_router.get("/", response_class=HTMLResponse)
 async def list_user(request: Request, 
                     page: int = 1,
                     verif: bool = False, 
                     username: str = None, 
                     log: str = Depends(get_current_username)):
-    
-
-    
+    """Список пользователей"""
     if verif is True:
         users = models.UserModel.filter(Q(verification=False) & Q(ban=False)).order_by('-last_verification_time', 'id')
-    
     if username:
         users = models.UserModel.filter(tg_username__icontains=username)
-
     if verif is False and not username:
         users = models.UserModel.all().order_by('id')
-    
     params = request.query_params._dict
-    
     if 'page' in params:
         del params['page']
-
-    
     limit = 30
     offset = (page - 1) * limit
     count_users = await users.count()
@@ -67,29 +43,13 @@ async def list_user(request: Request,
     users = await users.offset(offset).limit(limit)
     query_params = urlencode(params)
     previous_page = page-1
-    # params['page'] = previous_page
-    # previous_url = urlencode(params)
-
     next_page = page+1
-    # params['page'] = next_page
-    # next_url = urlencode(params)
-    # print(next_url)
-    # params['page'] = 1
-    # start_url = urlencode(params)
-    
-
-    # params['page'] = last_page
-    # end_url = urlencode(params)
-
     if page == 1:
         previous_page = None
-        # previous_url = None
     if page == last_page:
         next_page = None
-        # next_url = None
     if page > last_page:
         pass
-        # return redirect(url_for('list_users_view', **copy_params))
     data_users = [
         {"id": i.id,
         "username": i.tg_username,
@@ -99,7 +59,6 @@ async def list_user(request: Request,
         "verification": "✅" if i.verification is True else "❌"
         } for i in users
     ]
-    
     context = {"request": request, 
                "users": data_users,
                "previous_page": previous_page,
@@ -107,14 +66,13 @@ async def list_user(request: Request,
                "page": page,
                "last_page": last_page,
                "query_params": query_params}
-
     return templates.TemplateResponse("list_users.html", context)
-
 
 
 
 @user_router.get("/get_user/{id}", response_class=HTMLResponse)
 async def test(request: Request, id: int, log: str = Depends(get_current_username)):
+    """Подробнее о пользователе"""
     user = await models.UserModel.get(id=id)
     avatar = await user.avatar
     data = {"id": user.id,
@@ -172,14 +130,15 @@ async def test(request: Request, id: int, log: str = Depends(get_current_usernam
     data['ban'] = "В бане ❌" if user.ban is True else "Ограничений нет ✅"
     return templates.TemplateResponse("item.html", {"request": request, "user": data, "photo_bool": avatar.photo_bool, "hobbies": hobbies})
 
+
 @user_router.get("/ban_user/{id}", response_class=RedirectResponse)
 async def ban_user_handler(request: Request, id: int, log: str = Depends(get_current_username)):
+    """Бан/Разбан юзера"""
     user = await models.UserModel.get(id=id)
     user.ban = not user.ban
     await user.save()
     if user.ban:
         text = "Вы забанены."
-        
     else:
         text = "Вас разбанили."
     try:
@@ -188,8 +147,10 @@ async def ban_user_handler(request: Request, id: int, log: str = Depends(get_cur
         pass
     return f"/get_user/{id}"
 
+
 @user_router.get("/verif_user/{id}", response_class=RedirectResponse)
 async def verif_user(request: Request, id: int, log: str = Depends(get_current_username)):
+    """Забрать/Дать верификацию юзеру"""
     user = await models.UserModel.get(id=id)
     user.verification = not user.verification
     await user.save()
@@ -206,6 +167,7 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
 
 @user_router.get("/del_likes/{id}", response_class=RedirectResponse)
 async def verif_user(request: Request, id: int, log: str = Depends(get_current_username)):
+    """Отчистить лайки и взаимные лайки для юзера"""
     user = await models.UserModel.get(id=id)
     user.spam_ad_ids = None
     await user.save()
@@ -214,10 +176,9 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
     return f"/get_user/{id}"
 
 
-
 @user_router.post("/del_hobbie/{id}")
 async def del_hobbie_handler(request: Request, id: int, hobbies: list = Form(...), log: str = Depends(get_current_username)):
-    # body = await request.json()
+    """Удаляем хобби"""
     user = await models.UserModel.get(id=id)
     for hobbie in hobbies:
         await user.hobbies.remove(await models.Hobbies.get(id=hobbie))
@@ -225,8 +186,13 @@ async def del_hobbie_handler(request: Request, id: int, hobbies: list = Form(...
         f'/get_user/{id}', 
         status_code=status.HTTP_302_FOUND)
 
+
 @user_router.post("/append_superlike/{id}")
-async def append_superlikes(request: Request, id: int, superlike_count: int = Form(...), log: str = Depends(get_current_username)):
+async def append_superlikes(request: Request, 
+                            id: int, 
+                            superlike_count: int = Form(...), 
+                            log: str = Depends(get_current_username)):
+    """Накидываем суперлайки"""
     user = await models.UserModel.get(id=id)
     user.superlike_count += superlike_count
     await user.save()
@@ -236,7 +202,10 @@ async def append_superlikes(request: Request, id: int, superlike_count: int = Fo
 
 
 @user_router.post("/append_premium/{id}")
-async def append_superlikes(request: Request, id: int, mounth_count: int = Form(...), log: str = Depends(get_current_username)):
+async def append_superlikes(request: Request, 
+                            id: int, mounth_count: int = Form(...), 
+                            log: str = Depends(get_current_username)):
+    """Накидываем админку"""
     user = await models.UserModel.get(id=id)
     end_premium_date = datetime.utcnow() + relativedelta(months=+mounth_count)
     if user.end_premium is None:
@@ -250,9 +219,16 @@ async def append_superlikes(request: Request, id: int, mounth_count: int = Form(
         f'/get_user/{id}', 
         status_code=status.HTTP_302_FOUND)
 
+
 @user_router.post("/del_avatar/{id}")
-async def del_hobbie_handler(request: Request, id: int, msg: Optional[str] = Form(None), log: str = Depends(get_current_username)):
+async def del_hobbie_handler(request: Request, 
+                             id: int, 
+                             msg: Optional[str] = Form(None), 
+                             log: str = Depends(get_current_username)):
+    """Удаляем аватар"""
     user = await models.UserModel.get(id=id)
+    user.verification = False
+    await user.save()
     avatar = await user.avatar
     avatar.file_id = None
     avatar.file_path = None

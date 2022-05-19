@@ -1,11 +1,10 @@
 from datetime import datetime
 from models import models
-from tortoise.queryset import Q
-
 from utils.zodiak import zodiac_sign
 
 
-async def generate_ad_text(target_user: models.UserModel, relation):
+async def generate_ad_text(target_user: models.UserModel, relation: models.UsersRelations) -> str:
+    """Генерирует текст объявления"""
     zodiak = await zodiac_sign(target_user.birthday)
 
     year = datetime.now().year
@@ -25,12 +24,9 @@ async def generate_ad_text(target_user: models.UserModel, relation):
     target_hobbies = await target_user.hobbies.all()
     if target_hobbies:
         text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
-    # relation = await user_view.relation
     percent = relation.percent_compatibility
     if percent > 100:
         percent = 99
     text += f"Процент совместимости: {percent}%"
     return text
 
-
-# async def 

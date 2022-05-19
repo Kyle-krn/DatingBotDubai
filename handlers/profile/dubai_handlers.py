@@ -6,7 +6,8 @@ from aiogram import types
 from keyboards.inline.user_settings_keyboards import companion_dubai_keyboard, dubai_answer_keyboard
 from .views_self_profile_handlers import profile_handler
 from tortoise.queryset import Q
-from handlers.calculation_relations.recalculation_relations import recalculation_location
+# from handlers.calculation_relations.recalculation_relations import recalculation_location
+from utils.calculation_relations.recalculations import recalculation_location
 
 # @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'remove_dubai')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_remove_dubai')

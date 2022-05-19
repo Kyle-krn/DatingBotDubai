@@ -1,5 +1,4 @@
 # from . import help
-from . import start
 from . import gender_handlers
 from . import city_handlers
 from . import dubai_handlers

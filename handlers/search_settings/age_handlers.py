@@ -1,8 +1,10 @@
 
 from datetime import date
 from data.config import KEYBOARD_TEXT
-from handlers.calculation_relations.recalculation_relations import recalculation_int
-from handlers.calculation_relations.relations_handlers import check_age
+# from handlers.calculation_relations.recalculation_relations import recalculation_int
+from utils.calculation_relations.recalculations import recalculation_int
+# from handlers.calculation_relations.relations_handlers import check_age
+from utils.calculation_relations.check_relations import check_age
 from handlers.cancel_state_handler import redirect_handler
 from handlers.search_settings.view_settings_handler import settings_handler
 from keyboards.inline.inline_keyboards import one_button_keyboard

@@ -1,6 +1,7 @@
 from typing import Union
 from data.config import KEYBOARD_TEXT
-from handlers.calculation_relations.relations_handlers import check_age
+# from handlers.calculation_relations.relations_handlers import check_age
+from utils.calculation_relations.check_relations import check_age
 from handlers.cancel_state_handler import redirect_handler
 from keyboards.inline.inline_keyboards import one_button_keyboard
 from loader import dp
@@ -12,7 +13,8 @@ from datetime import datetime, date
 from models import models
 from .hobbies_handlers import set_hobbies_state
 from .views_self_profile_handlers import profile_handler
-from handlers.calculation_relations.recalculation_relations import recalculation_int
+# from handlers.calculation_relations.recalculation_relations import recalculation_int
+from utils.calculation_relations.recalculations import recalculation_int
 from tortoise.queryset import Q
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'bday')

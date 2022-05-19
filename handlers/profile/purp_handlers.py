@@ -3,7 +3,8 @@ from loader import dp
 from models import models
 from aiogram import types
 from keyboards.inline.user_settings_keyboards import purp_keyboard
-from handlers.calculation_relations.recalculation_relations import recalculation_purp
+# from handlers.calculation_relations.recalculation_relations import recalculation_purp
+from utils.calculation_relations.recalculations import recalculation_purp
 from tortoise.queryset import Q
 from .views_self_profile_handlers import profile_handler
 from aiogram import exceptions

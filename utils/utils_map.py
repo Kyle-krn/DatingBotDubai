@@ -1,19 +1,18 @@
-from datetime import datetime, date
+from datetime import datetime
+from typing import Tuple
 import aiohttp
 import urllib.parse
-import asyncio
-from pprint import PrettyPrinter
-# x = requests.get("https://api.mapbox.com/geocoding/v5/mapbox.places/Los%20Angeles.json?access_token=pk.eyJ1IjoiZWdvcmtlZTk2IiwiYSI6ImNsMmc1cmFxdzAwcmYzYnFlbjZ4Y2NoaGkifQ.oWKr0o_oAp2QDbNAILJRVQ")
-
 from timezonefinder import TimezoneFinder
-from pytz import timezone, utc
-
+from pytz import timezone
+from data import config
 tf = TimezoneFinder()
 
 
-async def get_location_by_city(place: str):
+async def get_location_by_city(place: str) -> Tuple[str, list, int]:
+    """Поиск лоакции по названию города, отдает - полное название локации, координаты центра города и разница в часах с UTC0"""
     place = urllib.parse.quote(place)
-    params = {'access_token': 'pk.eyJ1IjoiZWdvcmtlZTk2IiwiYSI6ImNsMmc1cmFxdzAwcmYzYnFlbjZ4Y2NoaGkifQ.oWKr0o_oAp2QDbNAILJRVQ', 'proximity': 'ip',
+    params = {'access_token': config.MAPBOX_TOKEN, 
+              'proximity': 'ip',
               'types': ','.join(['country', 'place'])}
     async with aiohttp.request('GET', f"https://api.mapbox.com/geocoding/v5/mapbox.places/{str(place)}.json", params=params) as response:
         resp_city = await response.json()
@@ -26,10 +25,9 @@ async def get_location_by_city(place: str):
         return None, None, None
 
 
-async def get_location_by_lat_long(lat: float, long: float):
-    # place = urllib.parse.quote(place)
-    params = {'access_token': 'pk.eyJ1IjoiZWdvcmtlZTk2IiwiYSI6ImNsMmc1cmFxdzAwcmYzYnFlbjZ4Y2NoaGkifQ.oWKr0o_oAp2QDbNAILJRVQ', 
-              }
+async def get_location_by_lat_long(lat: float, long: float) -> Tuple[str, list, int]:
+    """Поиск лоакции по названию геолокации, отдает - полное название локации, координаты центра города и разница в часах с UTC0"""
+    params = {'access_token': config.MAPBOX_TOKEN}
     async with aiohttp.request('GET', f"https://api.mapbox.com/geocoding/v5/mapbox.places/{long},{lat}.json", params=params) as response:
         resp_city = await response.json()
     try:

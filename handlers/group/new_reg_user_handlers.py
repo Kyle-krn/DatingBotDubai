@@ -1,12 +1,7 @@
-from datetime import datetime
 from data.config import PHOTO_TYPES, VIDEO_TYPES
-from keyboards.inline.inline_keyboards import verification_keyboards
 from models import models
 from loader import bot
-from loader import dp
-from aiogram import types
-from handlers.calculation_relations.relations_handlers import calculation_2_user
-from tortoise.queryset import Q
+
 
 async def send_new_registration_in_chanel(user: models.UserModel, old: bool = False):
     avatar = await user.avatar
@@ -51,57 +46,3 @@ async def send_new_registration_in_chanel(user: models.UserModel, old: bool = Fa
     else: 
         await bot.send_photo(-1001732505124, photo="https://www.etexstore.com/wp-content/plugins/all-in-one-seo-pack/images/default-user-image.png", caption=text)
 
-
-@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'verification')
-async def verification_user(call: types.CallbackQuery):
-    user_id = int(call.data.split(':')[1])
-    answer = call.data.split(':')[2]
-    user = await models.UserModel.get(id=user_id)
-    user.verification = True
-    await user.save()
-    await call.answer("Одобренно")
-    await call.message.edit_reply_markup(reply_markup=None)
-    await calculation_new_user(user)
-
-
-async def calculation_new_user(user: models.UserModel):
-    verification_user_list = await models.UserModel.filter(Q(ban=False) & Q(end_registration=True)).exclude(id=user.id)
-    # print(verification_user_list)
-    purp_friend = await models.PurposeOfDating.get(id=1)
-    purp_sex = await models.PurposeOfDating.get(id=2)
-    purp_user = await user.purp_dating.all()
-    year_now = datetime.now().year
-    old_user = year_now - user.birthday.year
-    hobbies_user = await user.hobbies.all()
-    interest_place_user = await user.interest_place_companion.all()
-    interest_place_4 = await models.DatingInterestPlace.get(id=1)
-    interest_place_5 = await models.DatingInterestPlace.get(id=2)
-    interest_place_6 = await models.DatingInterestPlace.get(id=3)
-    for target_user in verification_user_list:
-        percent, percent_age, percent_children, percent_hobbies, result_distance_check, result_purp_check, result_gender_check = await calculation_2_user(user=user,
-                                                                                                                                     target_user=target_user,
-                                                                                                                                     purp_friend=purp_friend,
-                                                                                                                                     purp_sex=purp_sex,
-                                                                                                                                     purp_user=purp_user,
-                                                                                                                                     hobbies_user=hobbies_user,
-                                                                                                                                     interest_place_user=interest_place_user,
-                                                                                                                                     interest_place_4=interest_place_4, 
-                                                                                                                                     interest_place_5=interest_place_5, 
-                                                                                                                                     interest_place_6=interest_place_6,
-                                                                                                                                     old_user=old_user)
-       
-        relation = await models.UsersRelations.get_or_none(Q(Q(user=user) & Q(target_user=target_user)) | Q(Q(target_user=user) & Q(user=target_user)))
-        if not relation:
-            relation = await models.UsersRelations.create(user=user, 
-                                                        target_user=target_user, 
-                                                        percent_compatibility=percent, 
-                                                        percent=percent,
-                                                        percent_age=percent_age,
-                                                        percent_children=percent_children,
-                                                        percent_hobbies=percent_hobbies,
-                                                        result_distance_check=result_distance_check, 
-                                                        result_purp_check=result_purp_check,
-                                                        result_gender_check=result_gender_check)
-        if percent > 0:
-            await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
-            await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)

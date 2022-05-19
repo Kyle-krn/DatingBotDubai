@@ -1,22 +1,18 @@
-from fastapi import APIRouter, Request, Response
-from fastapi import Depends,status # Assuming you have the FastAPI class for routing
-
-
-
-login_router = APIRouter()
-
-
+from fastapi import APIRouter, Response
+from fastapi import Depends,status
 import secrets
-
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from data import config
 
 security = HTTPBasic()
 
+login_router = APIRouter()
 
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = secrets.compare_digest(credentials.username, "stanleyjobson")
-    correct_password = secrets.compare_digest(credentials.password, "swordfish")
+    """Верификация в админке"""
+    correct_username = secrets.compare_digest(credentials.username, config.ADMIN_LOGIN)
+    correct_password = secrets.compare_digest(credentials.password, config.ADMIN_PSW)
     if not (correct_username and correct_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -25,23 +21,9 @@ def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return credentials.username
 
-@login_router.get("/users/me")
-def read_current_user(username: str = Depends(get_current_username)):
-    return {"username": username}
-
-
 
 @login_router.get("/logout")
 def get_headers(response: Response):
     response.delete_cookie("Authorization")
     return {"message": "Hello World"}
 
-from starlette.datastructures import MutableHeaders
-from fastapi import Request    
-
-@login_router.get("/test")
-def test(request: Request):
-     new_header = MutableHeaders(request._headers)
-     new_header["xxxxx"]="XXXXX"
-     request._headers = new_header
-     return {}

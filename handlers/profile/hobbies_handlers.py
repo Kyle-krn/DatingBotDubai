@@ -1,5 +1,6 @@
 from typing import Union
-from handlers.calculation_relations.relations_handlers import check_hobbies
+# from handlers.calculation_relations.relations_handlers import check_hobbies
+from utils.calculation_relations.check_relations import check_hobbies
 from loader import dp, bot
 from aiogram import types
 from .profile_state import ProfileSettingsState
@@ -9,7 +10,8 @@ from models import models
 from .marriage_handlers import marriage_handler
 from .views_self_profile_handlers import profile_handler
 from tortoise.queryset import Q
-from handlers.calculation_relations.recalculation_relations import recalculation_int
+# from handlers.calculation_relations.recalculation_relations import recalculation_int
+from utils.calculation_relations.recalculations import recalculation_int
 from tortoise import Tortoise
 from data.config import KEYBOARD_TEXT
 from handlers.cancel_state_handler import redirect_handler

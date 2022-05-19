@@ -1,4 +1,5 @@
-from handlers.calculation_relations.recalculation_relations import recalculation_by_gender
+# from handlers.calculation_relations.recalculation_relations import recalculation_by_gender
+from utils.calculation_relations.recalculations import recalculation_by_gender
 from handlers.search_settings.view_settings_handler import settings_handler
 from keyboards.inline.user_settings_keyboards import gender_keyboard
 from models import models

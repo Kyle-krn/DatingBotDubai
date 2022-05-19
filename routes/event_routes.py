@@ -1,25 +1,16 @@
-
-import uvicorn
 from aiogram import types, Dispatcher, Bot
-from loader import dp, bot, db, app
+from loader import dp, bot, db
 import asyncio
 from data.config import TORTOISE_ORM, WEBHOOK_URL
 from tasks import scheduler
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-import routes
-
 from fastapi import APIRouter
 
 
 event_router = APIRouter()
 
 
-
 @event_router.on_event("startup")
 async def on_startup():
-
     webhook_info = await bot.get_webhook_info()
     if webhook_info.url != WEBHOOK_URL:
         await bot.set_webhook(
@@ -28,9 +19,9 @@ async def on_startup():
     await db.init(config=TORTOISE_ORM)
     asyncio.create_task(scheduler(bot))
 
+
 @event_router.post("/bot")
 async def bot_webhook(update: dict):
-
     telegram_update = types.Update(**update)
     Dispatcher.set_current(dp)
     Bot.set_current(bot)

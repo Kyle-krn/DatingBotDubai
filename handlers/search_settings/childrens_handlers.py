@@ -1,7 +1,9 @@
 import re
 from data.config import KEYBOARD_TEXT
-from handlers.calculation_relations.recalculation_relations import recalculation_int
-from handlers.calculation_relations.relations_handlers import check_children
+# from handlers.calculation_relations.recalculation_relations import recalculation_int
+from utils.calculation_relations.recalculations import recalculation_int
+# from handlers.calculation_relations.relations_handlers import check_children
+from utils.calculation_relations.check_relations import check_children
 from handlers.cancel_state_handler import redirect_handler
 from keyboards.inline.user_settings_keyboards import settings_children_keyboard
 from loader import dp

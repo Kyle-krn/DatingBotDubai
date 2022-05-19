@@ -1,6 +1,8 @@
 from datetime import date
 
-async def zodiac_sign(bday: date):
+
+async def zodiac_sign(bday: date) -> str:
+    '''Вычисление знака зодиака по ДР'''
     if date(month=3, day=21, year=bday.year) <= bday <= date(month=4, day=19, year=bday.year):
         return "♈ Овен"
     

@@ -1,5 +1,6 @@
 from data.config import KEYBOARD_TEXT
-from handlers.calculation_relations.relations_handlers import check_children
+# from handlers.calculation_relations.relations_handlers import check_children
+from utils.calculation_relations.check_relations import check_children
 from handlers.cancel_state_handler import redirect_handler
 from loader import dp
 from aiogram import types
@@ -8,7 +9,8 @@ from keyboards.inline.user_settings_keyboards import purp_keyboard, children_key
 from models import models
 from .profile_state import ProfileSettingsState
 from .purp_handlers import purp_handler
-from handlers.calculation_relations.recalculation_relations import recalculation_int
+# from handlers.calculation_relations.recalculation_relations import recalculation_int
+from utils.calculation_relations.recalculations import recalculation_int
 from tortoise.queryset import Q
 from .views_self_profile_handlers import profile_handler
 

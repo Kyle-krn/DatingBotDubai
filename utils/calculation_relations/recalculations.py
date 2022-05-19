@@ -1,7 +1,8 @@
 from datetime import date
 import redis
 from models import models
-from .relations_handlers import check_children, check_age, check_distance, check_hobbies, check_purp, check_settings_gender
+# from .relations_handlers import check_children, check_age, check_distance, check_hobbies, check_purp, check_settings_gender
+import utils.calculation_relations.check_relations as check 
 from tortoise.queryset import Q
 from handlers.dating.dating_handlers import redis_cash_1
 from handlers.view_relations.views_handlers import redis_cash_2
@@ -35,19 +36,20 @@ async def recalculation_int(user: models.UserModel,
     for relation in relations:
         target_user = await get_target_user_from_relation(user=user, relation=relation)
         
-        if check_func is check_children:
+        if check_func is check.check_children:
             new_percent = await check_func(user=user, target_user=target_user)
-        elif check_func is check_age:
+        elif check_func is check.check_age:
             today = date.today()
             old_age = int((today - user.birthday).total_seconds() / 60 / 60 / 24 / 365)
             new_percent = await check_func(old_user=old_age, user=user, target_user=target_user)
-        elif check_func is check_hobbies:
+        elif check_func is check.check_hobbies:
             hobbies_user = await user.hobbies.all()
             new_percent = await check_func(target_user=target_user, hobbies_user=hobbies_user)
         
 
         old_percent = getattr(relation, attr_name)
         if old_percent != new_percent:
+            
             setattr(relation, attr_name, new_percent)
             if relation.result_distance_check is True and relation.result_purp_check is True and relation.result_gender_check is True:
                 percent_for_1_2_step = await models.DatingPercent.get(id=1)
@@ -68,17 +70,21 @@ async def recalculation_location(user: models.UserModel):
     interest_place_4 = await models.DatingInterestPlace.get(id=1)
     interest_place_5 = await models.DatingInterestPlace.get(id=2)
     interest_place_6 = await models.DatingInterestPlace.get(id=3)
+
     relations = await models.UsersRelations.filter(Q(user=user) | Q(target_user=user))
     for relation in relations:
-
         target_user = await get_target_user_from_relation(user=user, relation=relation)
 
-        reslut_distance_check = await check_distance(user=user, 
+
+        reslut_distance_check = await check.check_distance(user=user, 
                              target_user=target_user,
                              interest_place_user=interest_place_user,
                              interest_place_4=interest_place_4,
                              interest_place_5=interest_place_5,
                              interest_place_6=interest_place_6)
+
+
+
         if relation.result_distance_check == True and reslut_distance_check == False:
             relation.percent_compatibility = 0
             relation.result_distance_check = False
@@ -112,11 +118,12 @@ async def recalculation_purp(user: models.UserModel):
         purp_sex = await models.PurposeOfDating.get(id=2)
         purp_user = await user.purp_dating.all()
         
-        result_purp_check = await check_purp(user=user,
+        result_purp_check = await check.check_purp(user=user,
                                              target_user=target_user,
                                              purp_friend=purp_friend,
                                              purp_sex=purp_sex,
                                              purp_user=purp_user)
+        
         
         if relation.result_purp_check is True and result_purp_check is False:
             relation.percent_compatibility = 0
@@ -143,7 +150,7 @@ async def recalculation_by_gender(user: models.UserModel):
     relations = await models.UsersRelations.filter(Q(user=user) | Q(target_user=user))
     for relation in relations:
         target_user = await get_target_user_from_relation(user=user, relation=relation)
-        result_gender_check = await check_settings_gender(user=user, target_user=target_user)
+        result_gender_check = await check.check_settings_gender(user=user, target_user=target_user)
 
         if relation.result_gender_check is True and result_gender_check is False:
             relation.percent_compatibility = 0
@@ -161,7 +168,6 @@ async def recalculation_by_gender(user: models.UserModel):
                     await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
                 else:
                     relation.percent_compatibility = 0
-                # await relation.save()
             await relation.save()
 
 

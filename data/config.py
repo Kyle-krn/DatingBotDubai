@@ -1,3 +1,4 @@
+import os
 from environs import Env
 
 # Теперь используем вместо библиотеки python-dotenv библиотеку environs
@@ -18,6 +19,8 @@ WEBHOOK_PATH = f"/bot"
 WEBHOOK_HOST = env.str('WEBHOOK_HOST')
 WEBHOOK_URL = WEBHOOK_HOST + WEBHOOK_PATH
 
+MAPBOX_TOKEN = env.str("MAPBOX_TOKEN")
+LOG_CHANEL_NAME = env.str("LOG_CHANEL_NAME")
 POSTGRES_URI = f"postgres://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
 
 TORTOISE_ORM = {
@@ -38,3 +41,9 @@ VIDEO_TYPES = ("mp4", "avi")
 DEBUG_CHANNEL_ID = env.int('DEBUG_CHANNEL_ID')
 
 KEYBOARD_TEXT = ["👥 Найти пару", "👤 Профиль", "💑 Симпатии", "⚙ Настройки", "💸 Тарифные планы", "🆘 Помощь", "/dating", "/profile", "/likes", "/settings", "/rate_plane", "/help"]
+
+
+ADMIN_LOGIN = env.str("ADMIN_LOGIN")
+ADMIN_PSW = env.str("ADMIN_PSW")
+
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))

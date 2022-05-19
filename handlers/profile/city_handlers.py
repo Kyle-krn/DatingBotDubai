@@ -9,7 +9,8 @@ from keyboards.inline.user_settings_keyboards import city_answer_keyboard, dubai
 from keyboards.reply_keyboards.keyboards import geolocation_keyboard, main_keyboard
 from .profile_state import ProfileSettingsState
 from .dubai_handlers import dubai_handler 
-from handlers.calculation_relations.recalculation_relations import recalculation_location
+# from handlers.calculation_relations.recalculation_relations import recalculation_location
+from utils.calculation_relations.recalculations import recalculation_location
 from .views_self_profile_handlers import profile_handler
 
 
