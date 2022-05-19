@@ -2,6 +2,7 @@ from loader import dp
 from aiogram import types
 
 @dp.message_handler(commands=['help'])
+@dp.message_handler(regexp="^(🆘 Помощь)$")
 async def command_help_handler(message: types.Message):
     text = "Как работает этот бот?\n"  \
         "Наш бот создан для тех кто эмигрировал или собирается эмигрировать в "  \
