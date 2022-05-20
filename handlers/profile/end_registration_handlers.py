@@ -24,8 +24,8 @@ async def end_registration(message: types.Message, user: models.UserModel):
         return await message.answer(f"Укажите Ваш пол:", reply_markup=await gender_keyboard())
     elif user.place is None:
         return await city_set_state_handler(message)
-    elif user.moving_to_dubai is None:
-        return await dubai_handler(message)
+    # elif user.moving_to_dubai is None:
+    #     return await dubai_handler(message)
     elif len(await user.interest_place_companion.all()) == 0:
         return await settings_companion_place_hanlder(message)
     elif user.birthday is None:
