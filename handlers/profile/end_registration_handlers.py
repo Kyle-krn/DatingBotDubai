@@ -8,11 +8,12 @@ from keyboards.inline.user_settings_keyboards import gender_keyboard
 from loader import dp
 from models import models
 from aiogram import types
+from aiogram.dispatcher import FSMContext
 
-
-@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'end_registration_user')
-async def redirect_end_register(call: types.CallbackQuery):
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'end_registration_user', state="*")
+async def redirect_end_register(call: types.CallbackQuery, state: FSMContext):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
+    await state.finish()
     await call.message.delete()
     return await end_registration(message=call.message, user=user)
 
