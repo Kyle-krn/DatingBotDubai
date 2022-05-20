@@ -9,3 +9,4 @@ from . import children_handlers
 from . import purp_handlers
 from . import avatar_handlers
 from . import views_self_profile_handlers
+from . import end_registration_handlers

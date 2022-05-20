@@ -39,7 +39,13 @@ async def view_relations_handler(message: Union[types.CallbackQuery, types.Messa
     if user.end_registration is False:
         return await message.answer("Вы не закончили регистрацию")
     elif user.verification is False:
-        return await message.answer("Ваш профиль еще не верифицирован.")
+        avatar = await user.avatar
+        if avatar.file_id is None:
+            return await message.answer("Чтобы начать знакомиться добавьте ваше фото!", reply_markup=await one_button_keyboard(text="Добавить фото", 
+                                                                                                                               callback="change_ava:"))
+        else:
+            return await message.answer("Мы проверяем ваше фото, когда проверка закончится мы Вам сообщим и вы сможете начать знакомиться!")
+        # return await message.answer("Ваш профиль еще не верифицирован.")
     query = Q(Q(user=user) | Q(target_user=user)) & Q(Q(user__verification=True) & Q(target_user__verification=True))
     count_mutal_like = await models.MutualLike.filter(query).count()
     your_likes = await rowsql_likes(user.id)

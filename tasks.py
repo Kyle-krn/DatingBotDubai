@@ -27,14 +27,15 @@ async def spam_motivation_message(bot: Bot):
         if datetime(day=local_time_user.day,            # Если у юзера день 
                     month=local_time_user.month, 
                     year=local_time_user.year,
-                    hour=8) <= local_time_user <= datetime(day=local_time_user.day, 
+                    hour=10) <= local_time_user <= datetime(day=local_time_user.day, 
                                                            month=local_time_user.month, 
                                                            year=local_time_user.year,
                                                            hour=22):
             avatar = await user.avatar
             if user.end_registration is False:
                 try:
-                    await bot.send_message(chat_id=user.tg_id, text="Тект для тех кто не закончил регу")
+                    await bot.send_message(chat_id=user.tg_id, text="Мы заметили, что вы не закончили регистрацию! Пройдите регистрацию полностью, чтобы начать знакомиться!",
+                                           reply_markup=await one_button_keyboard(text="Закончить регистрацию", callback="end_registration_user:"))
                 except BotBlocked:
                     pass
                 continue

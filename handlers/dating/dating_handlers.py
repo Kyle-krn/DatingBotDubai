@@ -23,7 +23,13 @@ async def search_dating(message: types.Message, last_view_id: int = None):
     if user.end_registration is False:
         return await message.answer("Вы не закончили регистрацию")
     elif user.verification is False:
-        return await message.answer("Ваш профиль еще не верифицирован")
+        avatar = await user.avatar
+        if avatar.file_id is None:
+            return await message.answer("Чтобы начать знакомиться добавьте ваше фото!", reply_markup=await one_button_keyboard(text="Добавить фото", 
+                                                                                                                               callback="change_ava:"))
+        else:
+            return await message.answer("Мы проверяем ваше фото, когда проверка закончится мы Вам сообщим и вы сможете начать знакомиться!")
+        # return await message.answer("Ваш профиль еще не верифицирован")
     queryset_cache = redis_cash_1.get(str(message.chat.id))
     
     if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
@@ -53,9 +59,6 @@ async def search_dating(message: types.Message, last_view_id: int = None):
     
     user_view.count_view += 1
     await user_view.save()
-    
-    
-
     text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
     if avatar.file_type is None:
         pass

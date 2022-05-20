@@ -9,6 +9,13 @@ from loader import dp
 from models import models
 from aiogram import types
 
+
+@dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'end_registration_user')
+async def redirect_end_register(call: types.CallbackQuery):
+    user = await models.UserModel.get(tg_id=call.message.chat.id)
+    await call.message.delete()
+    return await end_registration(message=call.message, user=user)
+
 async def end_registration(message: types.Message, user: models.UserModel):
     avatar = await models.AvatarModel.get_or_create(user=user)
     avatar = avatar[0]

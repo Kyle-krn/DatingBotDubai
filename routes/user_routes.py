@@ -19,15 +19,18 @@ user_router = APIRouter()
 async def list_user(request: Request, 
                     page: int = 1,
                     verif: bool = False, 
-                    username: str = None, 
+                    username: str = None,
+                    not_register: bool = False,
                     log: str = Depends(get_current_username)):
     """Список пользователей"""
     if verif is True:
-        users = models.UserModel.filter(Q(verification=False) & Q(ban=False)).order_by('-last_verification_time', 'id')
+        users = models.UserModel.filter(Q(verification=False) & Q(ban=False) & Q(end_registration=True)).order_by('-last_verification_time', 'id')
     if username:
         users = models.UserModel.filter(tg_username__icontains=username)
     if verif is False and not username:
         users = models.UserModel.all().order_by('id')
+    if not_register is True:
+        users = models.UserModel.filter(end_registration=False).order_by('id')
     params = request.query_params._dict
     if 'page' in params:
         del params['page']
