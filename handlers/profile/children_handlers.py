@@ -1,6 +1,4 @@
 from data.config import KEYBOARD_TEXT
-# from handlers.calculation_relations.relations_handlers import check_children
-from utils.calculation_relations.check_relations import check_children
 from handlers.cancel_state_handler import redirect_handler
 from loader import dp
 from aiogram import types
@@ -9,8 +7,6 @@ from keyboards.inline.user_settings_keyboards import purp_keyboard, children_key
 from models import models
 from .profile_state import ProfileSettingsState
 from .purp_handlers import purp_handler
-# from handlers.calculation_relations.recalculation_relations import recalculation_int
-from utils.calculation_relations.recalculations import recalculation_int
 from tortoise.queryset import Q
 from .views_self_profile_handlers import profile_handler
 
@@ -76,14 +72,9 @@ async def children_state_handler(message: types.Message, state: FSMContext):
         user.children_age = children_list
         await user.save()
     await state.finish()
-    # await message.answer('Выберите цели знакомства', reply_markup=await purp_keyboard(await user.purp_dating.all()))
     if user_data['status_user'] == 'new':
         return await purp_handler(message, change=False)
     else:
-        if user_data['old_value_children_age'] != user.children_age or user_data['old_value_children'] != user.children:
-            await recalculation_int(user=user,
-                            check_func=check_children,
-                            attr_name="percent_children")
         if message.text in KEYBOARD_TEXT:
             return await redirect_handler(message, message.text)
         else:
@@ -95,9 +86,6 @@ async def children_state_handler(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'c_skip_children')
 async def skip_children_hanlder(call: types.CallbackQuery):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
-    old_value_children = user.children
-    old_value_children_age = user.children_age
-    # user_data = await state.get_data()
     if call.data.split(':')[1] == 'no':
         user.children = False
         user.children_age = []
@@ -110,11 +98,6 @@ async def skip_children_hanlder(call: types.CallbackQuery):
     if call.data.split(':')[0] == 'skip_children':
         return await purp_handler(call, change=False)
     else:
-        if old_value_children != user.children:
-            await recalculation_int(user=user,
-                            check_func=check_children,
-                            attr_name="percent_children")
-        # await call.message.delete()
         return await profile_handler(call.message)
 
 

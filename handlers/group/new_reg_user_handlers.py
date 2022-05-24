@@ -16,15 +16,15 @@ async def send_new_registration_in_chanel(user: models.UserModel, old: bool = Fa
         text += "Male\n"
     else:
         text += "Female\n"
-    text += f"<b>Place</b> - {user.place}\n"  \
-            f"<b>Lat, Lon</b> - {user.lat}, {user.long}\n"  \
+    user_place = await user.place
+    text += f"<b>Place</b> - {user_place.place_name}\n"  \
             f"<b>Moving in Dubai</b> - {user.moving_to_dubai}\n"  \
             f"<b>Bday</b> - {user.birthday}\n"  \
             f"<b>Companion place</b> - "  
     text += ", ".join([i.title_interest for i in await user.interest_place_companion.all()]) + "\n"
     text += f"<b>Hobbies</b> - "
     text += ", ".join([i.title_hobbie for i in await user.hobbies.all()]) + "\n"
-    text += f"<b>TMZ</b> - {user.tmz}\n" \
+    text += f"<b>TMZ</b> - {user_place.tmz}\n" \
             f"<b>Children</b> - "
     if user.children is True:
         text += "Have\n"
@@ -34,7 +34,7 @@ async def send_new_registration_in_chanel(user: models.UserModel, old: bool = Fa
         text += "Not say\n"
     text += "<b>Age children</b> - "
     text += ", ".join([str(i) for i in user.children_age]) + "\n"
-    text += f"<b>Marital status</b> - {user.marital_status}\n"
+    text += f"<b>Marital status</b> - {await user.marital_status.title_status}\n"
     text += "<b>Purp dating</b> - "
     text += ", ".join([i.title_purp for i in await user.purp_dating.all()]) + "\n"
     # text += f"<b>Search radius</b> - {user.search_radius} km"

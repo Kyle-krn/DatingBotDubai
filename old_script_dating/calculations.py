@@ -1,8 +1,10 @@
+import random
 from typing import List
 from models import models
 from datetime import datetime
 from tortoise.queryset import Q
-import utils.calculation_relations.check_relations as check
+import .check_relations as check
+from tortoise import run_async
 
 async def calculation_new_user(user: models.UserModel):
     """Создает связи с новыми пользователями прошедшими регистрацию"""
@@ -33,15 +35,15 @@ async def calculation_new_user(user: models.UserModel):
         relation = await models.UsersRelations.get_or_none(Q(Q(user=user) & Q(target_user=target_user)) | Q(Q(target_user=user) & Q(user=target_user)))
         if not relation:
             relation = await models.UsersRelations.create(user=user, 
-                                                        target_user=target_user, 
-                                                        percent_compatibility=percent, 
-                                                        percent=percent,
-                                                        percent_age=percent_age,
-                                                        percent_children=percent_children,
-                                                        percent_hobbies=percent_hobbies,
-                                                        result_distance_check=result_distance_check, 
-                                                        result_purp_check=result_purp_check,
-                                                        result_gender_check=result_gender_check)
+                                                          target_user=target_user, 
+                                                          percent_compatibility=percent, 
+                                                          percent=percent,
+                                                          percent_age=percent_age,
+                                                          percent_children=percent_children,
+                                                          percent_hobbies=percent_hobbies,
+                                                          result_distance_check=result_distance_check, 
+                                                          result_purp_check=result_purp_check,
+                                                          result_gender_check=result_gender_check)
         if percent > 0:
             await models.UserView.get_or_create(user=user, target_user=target_user, relation=relation)
             await models.UserView.get_or_create(user=target_user, target_user=user, relation=relation)
@@ -94,4 +96,6 @@ async def calculation_2_user(user: models.UserModel,
     if percent < 0:
         percent = 0
     return percent, percent_age, percent_children, percent_hobbies, result_distance_check, result_purp_check, result_settings_gender
+
+
 

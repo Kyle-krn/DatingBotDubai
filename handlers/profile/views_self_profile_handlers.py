@@ -4,6 +4,7 @@ from loader import dp
 from aiogram import types
 from models import models
 from keyboards.inline.user_settings_keyboards import main_profile_keyboard
+from utils.text_for_ad import generate_ad_text
 from utils.zodiak import zodiac_sign
 
 
@@ -24,22 +25,23 @@ async def profile_handler(message: types.Message):
 
     year = datetime.now().year
 
-    text = f"{user.name}, {year-user.birthday.year}\n"  \
-           f"{zodiak}\n" \
-           f"🗺️ {user.place}\n" \
-           f"👫 {user.marital_status}\n"  \
-           f"Дети: "
-    if user.children is True:
-        text += "Есть\n"
-    elif user.children is False:
-        text += "Нет\n"
-    elif user.children is None:
-        text += "Не скажу\n"
-    if user.children_age != []:
-        text += "Возраст детей: " + ", ".join([str(i)+" г." for i in user.children_age]) + "\n"
-    target_hobbies = await user.hobbies.all()
-    if target_hobbies:
-        text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
+    text = await generate_ad_text(target_user=user, general_percent=None)
+    # text = f"{user.name}, {year-user.birthday.year}\n"  \
+    #        f"{zodiak}\n" \
+    #        f"🗺️ {user.place}\n" \
+    #        f"👫 {user.marital_status}\n"  \
+    #        f"Дети: "
+    # if user.children is True:
+    #     text += "Есть\n"
+    # elif user.children is False:
+    #     text += "Нет\n"
+    # elif user.children is None:
+    #     text += "Не скажу\n"
+    # if user.children_age != []:
+    #     text += "Возраст детей: " + ", ".join([str(i)+" г." for i in user.children_age]) + "\n"
+    # target_hobbies = await user.hobbies.all()
+    # if target_hobbies:
+    #     text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
 
     # photo_types = ('jpeg', 'jpg', "webm", "png")
     # video_types = ("mp4", "avi")

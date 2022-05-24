@@ -1,6 +1,7 @@
 import re
 from aiogram import types
 from tortoise import List
+from models import models
 from models.models import DatingInterestPlace, Hobbies, UserModel, PurposeOfDating
 
 
@@ -88,18 +89,12 @@ async def remove_hobbie_keyboard(hobbies_list: List[Hobbies], status_user: str =
     return keyboard
 
 
-async def marital_status_keyboard(user_martial_status: str, callback: str = "ms"):
+async def marital_status_keyboard(user_marital_status_id: str, callback: str = "ms"):
     '''callback = "ms" or "c_ms"'''
-    keyboard = types.InlineKeyboardMarkup()                                         # mar_status - ms
-    status_1 = "Женат/Замужем" 
-    keyboard.add(types.InlineKeyboardButton(text=status_1 if status_1 != user_martial_status else "✅" + status_1, 
-                                            callback_data=f"{callback}:{status_1}"))
-    status_2 = "В отношениях"
-    keyboard.add(types.InlineKeyboardButton(text=status_2 if status_2 != user_martial_status else "✅" + status_2, 
-                                            callback_data=f"{callback}:{status_2}"))
-    status_3 = "Свободен(-на)"
-    keyboard.add(types.InlineKeyboardButton(text=status_3 if status_3 != user_martial_status else "✅" + status_3, 
-                                            callback_data=f"{callback}:{status_3}"))
+    keyboard = types.InlineKeyboardMarkup()                                    # mar_status - ms
+    for status in await models.MaritalStatus.all():
+        keyboard.add(types.InlineKeyboardButton(text=status.title_status if user_marital_status_id != status.id else "✅" + status.title_status, 
+                                                callback_data=f"{callback}:{status.id}"))
     return keyboard
 
 

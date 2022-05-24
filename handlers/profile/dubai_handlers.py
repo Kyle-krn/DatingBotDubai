@@ -6,8 +6,6 @@ from aiogram import types
 from keyboards.inline.user_settings_keyboards import companion_dubai_keyboard, dubai_answer_keyboard
 from .views_self_profile_handlers import profile_handler
 from tortoise.queryset import Q
-# from handlers.calculation_relations.recalculation_relations import recalculation_location
-from utils.calculation_relations.recalculations import recalculation_location
 
 # @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'remove_dubai')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_remove_dubai')
@@ -40,8 +38,6 @@ async def remove_dubai_handler(call: types.CallbackQuery):
         return await settings_companion_place_hanlder(call)
     else:
         # await call.message.delete()
-        if old_value != user.moving_to_dubai:
-            await recalculation_location(user)
         return await profile_handler(call.message)
 
 
@@ -80,5 +76,4 @@ async def back_settings_handler(call: types.CallbackQuery):
     interest_place_user = await user.interest_place_companion.all()
     text_place = ", ".join([i.title_interest for i in interest_place_user])
     await call.message.edit_text(text=f"Вы выбрали: {text_place}", reply_markup=None)
-    await recalculation_location(user)
     return await settings_handler(call.message)

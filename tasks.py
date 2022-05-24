@@ -6,7 +6,7 @@ from keyboards.inline.inline_keyboards import like_keyboard, one_button_keyboard
 from models import models
 from aiogram import Bot
 from tortoise.queryset import Q
-from models.row_user_likes import rowsql_likes
+# from models.db_query import rowsql_likes
 from utils.text_for_ad import generate_ad_text
 from aiogram.utils.exceptions import BotBlocked
 

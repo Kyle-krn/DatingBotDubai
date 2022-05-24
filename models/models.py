@@ -10,26 +10,27 @@ class UserModel(Model):
     tg_username: str = fields.CharField(max_length=255, null=True)
     male: bool = fields.BooleanField(null=True)
     name: str = fields.CharField(max_length=255, null=True)
-    # about_me: str = fields.TextField(null=True)
-    lat: Decimal = fields.DecimalField(max_digits=10, decimal_places=6, null=True)
-    long: Decimal = fields.DecimalField(max_digits=10, decimal_places=6, null=True)
-    place: str = fields.TextField(null=True)
+    # place: str = fields.TextField(null=True)
+    place: fields.ForeignKeyNullableRelation["City"] = fields.ForeignKeyField(
+        "models.City", related_name="users", null=True
+    )
     dubai: bool = fields.BooleanField(default=False)
     moving_to_dubai: bool = fields.BooleanField(null=True)
     birthday = fields.DateField(null=True)
     interest_place_companion: fields.ManyToManyRelation["DatingInterestPlace"] = fields.ManyToManyField(
-        "models.DatingInterestPlace", related_name="users", through="interest_place_user"
+        "models.DatingInterestPlace", related_name="users", through="users_places" # old name - interest_place_user
     )
     hobbies: fields.ManyToManyRelation["Hobbies"] = fields.ManyToManyField(
         "models.Hobbies", related_name="users", through="users_hobbies"
     )
-    tmz: int = fields.IntField(null=True)
     children: bool = fields.BooleanField(null=True)
     children_age: list = fields.JSONField(default=[]) 
-    marital_status: str = fields.CharField(max_length=255, null=True)
-
+    # marital_status: str = fields.CharField(max_length=255, null=True)
+    marital_status: fields.ForeignKeyNullableRelation["MaritalStatus"] = fields.ForeignKeyField(
+        "models.MaritalStatus", related_name="users", null=True
+    )
     purp_dating: fields.ManyToManyRelation["PurposeOfDating"] = fields.ManyToManyField(
-        "models.PurposeOfDating", related_name="users", through="users_purp"
+        "models.PurposeOfDating", related_name="users", through="users_purps"  # old name - users_purp
     )
     end_premium: datetime = fields.DatetimeField(null=True)
     avatar: fields.OneToOneRelation["AvatarModel"]
@@ -45,14 +46,15 @@ class UserModel(Model):
     search_settings: fields.ReverseRelation["UserSearchSettings"]
     spam_ad_ids = fields.JSONField(null=True)    
     last_verification_time: datetime = fields.DatetimeField(null=True)
-    # class Meta:
-    #     table = 'user'
+
+    class Meta: # old name - usermodel
+        table = 'users'
 
     def __str__(self):
         return f"User #{self.id}: {self.tg_username}"
 
 
-class UserSuccesPayments(Model):
+class UserSuccessPayments(Model):
     id: int = fields.IntField(pk=True)
     user: fields.ForeignKeyRelation[UserModel] = fields.ForeignKeyField(
         "models.UserModel", related_name="payments"
@@ -63,47 +65,21 @@ class UserSuccesPayments(Model):
     count_mount_prem: int = fields.IntField(null=True) 
     superlike_count: int = fields.IntField(null=True)
 
-
-class UsersRelations(Model):
-    '''Процент совместимости междую юзерами'''
-    id: int = fields.IntField(pk=True)
-    user: fields.ForeignKeyRelation[UserModel] = fields.ForeignKeyField(
-        "models.UserModel", related_name="user_relation"
-    )
-    target_user: fields.ForeignKeyRelation[UserModel] = fields.ForeignKeyField(
-        "models.UserModel", related_name="target_user_relation"
-    )
-    percent_compatibility: int = fields.IntField()
-    
-    result_distance_check: bool = fields.BooleanField()
-    result_purp_check: bool = fields.BooleanField()
-
-    percent_age: int = fields.IntField()
-    percent_children: int = fields.IntField()
-    percent_hobbies: int = fields.IntField()
-
-    result_gender_check: bool = fields.BooleanField()
-
-    # class Meta:
-    #     table = 'users_relations'
-
-
-# class SpamDataUser(Model):
-#     id: int = fields.IntField(pk=True)
-#     user: fields.OneToOneRelation[UserModel] = fields.OneToOneField("models.UserModel", related_name="search_settings")
+    class Meta:
+        table = 'users_success_payments'
 
 class UserSearchSettings(Model):
     id: int = fields.IntField(pk=True)
     user: fields.OneToOneRelation[UserModel] = fields.OneToOneField("models.UserModel", related_name="search_settings")
     male: bool = fields.BooleanField(null=True)
-    min_age: int = fields.IntField(null=True)
-    max_age: int = fields.IntField(null=True)
+    min_age: int = fields.IntField(default=18)
+    max_age: int = fields.IntField(default=99)
     children: bool = fields.BooleanField(null=True)
-    children_min_age: int = fields.IntField(null=True)
-    children_max_age: int = fields.IntField(null=True)
+    children_min_age: int = fields.IntField(default=0)
+    children_max_age: int = fields.IntField(default=18)
 
-    # class Meta:
-    #     table = "user_settings"
+    class Meta:
+        table = "users_settings"
 
 class UserView(Model):
     id: int = fields.IntField(pk=True)
@@ -111,16 +87,16 @@ class UserView(Model):
         "models.UserModel", related_name="user_view")
     target_user: fields.ForeignKeyRelation[UserModel] = fields.ForeignKeyField(
         "models.UserModel", related_name="target_user_view")
-    relation: fields.ForeignKeyRelation["UsersRelations"] = fields.ForeignKeyField(
-        "models.UsersRelations", related_name="relation_view")
+    # relation: fields.ForeignKeyRelation["UsersRelations"] = fields.ForeignKeyField(
+    #     "models.UsersRelations", related_name="relation_view")
     count_view: int = fields.IntField(default=0)
 
     like: bool = fields.BooleanField(default=False)
     superlike: bool = fields.BooleanField(default=False)
     dislike: bool = fields.BooleanField(default=False)
     
-    # class Meta:
-    #     table = 'user_view'
+    class Meta: # old name - userview
+        table = 'users_views'
 
 
 class MutualLike(Model):
@@ -131,8 +107,8 @@ class MutualLike(Model):
         "models.UserModel", related_name="target_mutal_like")
     created_at: datetime = fields.DatetimeField(auto_now_add=True)
 
-    # class Meta:
-    #     table = "mutal_like"
+    class Meta:
+        table = "mutal_likes"
 
 
 
@@ -145,8 +121,8 @@ class AvatarModel(Model):
     photo_bool: bool = fields.BooleanField(null=True)
     user: fields.OneToOneRelation[UserModel] = fields.OneToOneField("models.UserModel", related_name="avatar")
 
-    # class Meta:
-    #     table = "user_avatar"
+    class Meta:
+        table = "users_avatar"
 
 
 class DatingInterestPlace(Model):
@@ -156,8 +132,8 @@ class DatingInterestPlace(Model):
     def __str__(self):
         return self.title_interest
 
-    # class Meta:
-    #     table = "dating_interest_place"
+    class Meta: # datinginterestplace
+        table = "dating_interest_place"
 
 
 class PurposeOfDating(Model):
@@ -165,8 +141,8 @@ class PurposeOfDating(Model):
     title_purp: str = fields.CharField(max_length=255)
     users: fields.ManyToManyRelation["UserModel"]
 
-    # class Meta:
-    #     table = "dating_purpose"
+    class Meta: # purposeofdating
+        table = "dating_purpose"
 
 
 class Hobbies(Model):
@@ -174,11 +150,32 @@ class Hobbies(Model):
     title_hobbie: str = fields.CharField(max_length=255, unique=True)
     users: fields.ManyToManyRelation["UserModel"]
 
-    # class Meta:
-    #     table = "hobbie"
+    class Meta:
+        table = "hobbies"
 
 
 class DatingPercent(Model):
     id: int = fields.IntField(pk=True)
-    discription: str = fields.CharField(max_length=255)
+    description: str = fields.CharField(max_length=255)
     percent: int = fields.IntField()
+
+    class Meta: # datingpercent
+        table = "dating_percent"
+
+
+class MaritalStatus(Model):
+    id: int = fields.IntField(pk=True)
+    title_status: int = fields.CharField(max_length=255)
+
+    class Meta:
+        table = "marital_status"
+
+
+
+class City(Model):
+    id: int = fields.IntField(pk=True)
+    place_name: int = fields.CharField(max_length=255)
+    tmz: int = fields.IntField(null=True)
+
+    class Meta:
+        table = "city"

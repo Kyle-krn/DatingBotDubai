@@ -38,12 +38,12 @@ async def check_distance(user: models.UserModel,
     tar_place_3 = target_user.dubai is False and target_user.moving_to_dubai is False
     tar_place_1 = target_user.dubai is True
 
-
-    if (user.dubai and ip4 in ipu) and condition_1:
+    if (user.dubai and ip4 in ipu) and (tar_place_1 and condition_1):
+        """1,4                               1,4; 1,4,5; 1,4,5,6 ; 1,4,6"""
         return True
     elif (user.dubai and ip4 in ipu and ip5 in ipu and ip6 not in ipu) and (tar_place_1_and_2 and condition_1):
         '''1,4,5                            1,4; 1,4,5; 1,4,5,6 ; 1,4,6; 2,4; 2,4,5; 2,4,5,6 ; 2,4,6 '''
-        return True
+        return True                        #  1    1 2    1 2 3     1 3    1    1 2    1 2 3     1 2
     elif (user.dubai and ip4 in ipu and ip5 in ipu and ip6 in ipu) and (condition_1):
         '''1,4,5,6                         1,4; 1,4,5; 1,4,5,6 ; 1,4,6; 2,4; 2,4,5; 2,4,5,6 ; 2,4,6; 3,4; 3,4,5; 3,4,5,6 ; 3,4,6;'''
         return True
@@ -59,6 +59,8 @@ async def check_distance(user: models.UserModel,
     elif (user.dubai and ip4 not in ipu and ip5 not in ipu and ip6 in ipu) and (tar_place_3 and condition_1):
         '''1,6                               3,4; 3,4,5; 3,4,5,6 ; 3,4,6;'''
         return True 
+
+
     elif (user.dubai is False and user.moving_to_dubai is True and ip4 in ipu and ip5 not in ipu and ip6 not in ipu) and (tar_place_1 and condition_2):
         '''2,4                               1,5; 1,4,5; 1,4,5,6 ; 1,5,6'''
         return True
@@ -80,6 +82,8 @@ async def check_distance(user: models.UserModel,
     elif (user.dubai is False and user.moving_to_dubai is True and ip4 not in ipu and ip5 not in ipu and ip6 in ipu) and (tar_place_3 and condition_2):
         '''2,6                              3,5; 3,4,5; 3,4,5,6 ; 3,5,6'''
         return True
+    
+    
     elif (user.dubai is False and user.moving_to_dubai is False and ip4 in ipu and ip5 not in ipu and ip6 not in ipu) and (tar_place_1 and condition_3):
         '''3,4                              1,6; 1,4,6; 1,4,5,6 ; 1,5,6'''
         return True
@@ -149,17 +153,14 @@ async def check_age(old_user: int,
     year_now = datetime.now().year
     user_settings: models.UserSearchSettings = await user.search_settings
     tar_user_settings: models.UserSearchSettings = await target_user.search_settings
-    
     age_user = old_user
     age_tar_user = year_now-target_user.birthday.year
     if user_settings.min_age is not None or user_settings.max_age is not None:
         if (user_settings.min_age < age_tar_user < user_settings.max_age) is False:
             return -1000
-
     if tar_user_settings.min_age is not None or tar_user_settings.max_age is not None:
         if (tar_user_settings.min_age < age_user < tar_user_settings.max_age) is False:
             return -1000
-
     difference = abs(old_user - (year_now-target_user.birthday.year))
     difference_percent = await models.DatingPercent.get(id=3)
     difference = difference * difference_percent.percent

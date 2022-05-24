@@ -1,4 +1,5 @@
 import re
+from site import USER_SITE
 from data.config import PHOTO_TYPES, VIDEO_TYPES
 from loader import dp, bot
 from aiogram import types
@@ -13,59 +14,62 @@ import json
 from handlers.view_relations.views_handlers import view_your_likes_handler
 import tortoise
 from aiogram.utils.exceptions import BotBlocked
+from models.db_query import calculation_users
 
 redis_cash_1 = redis.Redis(db=1)
+
 
 @dp.message_handler(commands=['dating'])
 @dp.message_handler(regexp="^(👥 Найти пару)$")
 async def search_dating(message: types.Message, last_view_id: int = None):
     user = await models.UserModel.get(tg_id=message.chat.id)
+    avatar = await user.avatar
+    if avatar.file_id is None:
+        return await message.answer("Чтобы начать знакомиться добавьте ваше фото!", reply_markup=await one_button_keyboard(text="Добавить фото", 
+                                                                                                                               callback="change_ava:"))
     if user.end_registration is False:
         return await message.answer("Вы не закончили регистрацию")
     elif user.verification is False:
-        avatar = await user.avatar
-        if avatar.file_id is None:
-            return await message.answer("Чтобы начать знакомиться добавьте ваше фото!", reply_markup=await one_button_keyboard(text="Добавить фото", 
-                                                                                                                               callback="change_ava:"))
-        else:
-            return await message.answer("Мы проверяем ваше фото, когда проверка закончится мы Вам сообщим и вы сможете начать знакомиться!")
-        # return await message.answer("Ваш профиль еще не верифицирован")
+        return await message.answer("Мы проверяем ваше фото, когда проверка закончится мы Вам сообщим и вы сможете начать знакомиться!")
     queryset_cache = redis_cash_1.get(str(message.chat.id))
-    
     if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
-        query = Q(relation__percent_compatibility__gt=0) & Q(target_user__verification=True) & Q(target_user__ban=False) & Q(like=False) & Q(superlike=False)
-        user_view = user.user_view.filter(query).order_by('dislike', 'count_view', '-relation__percent_compatibility')        #.limit(1)
-        if last_view_id:
-            user_view = user_view.exclude(id=last_view_id)
-        target_users_list = await user_view
-        if len(target_users_list) == 0:
+        msg = await message.answer("⌛ <b>Идет загрузка, это может занять какое то время</b>")
+        target_ids = await calculation_users(user_id=user.id)
+        await msg.delete()
+        if len(target_ids) == 0:
             return await message.answer("К сожалению подходящих пар не найдено.")
-        user_view = target_users_list.pop(0)
-        redis_cash_1.set(str(message.chat.id), json.dumps([v.id for v in target_users_list]), 5*60)
+        now_target = target_ids.pop(0)
+        target_user = await models.UserModel.get(id=now_target['target_id'])
+        user_view = await models.UserView.get_or_create(user=user, target_user=target_user)
+        if len(target_ids) > 0:
+            redis_cash_1.set(str(message.chat.id), json.dumps(target_ids), 10*60)
     else:
-        queryset_cache = json.loads(queryset_cache)
-        try:
-            user_view = await models.UserView.get(id = queryset_cache.pop(0))
-        except tortoise.exceptions.DoesNotExist:
-            pass
+        target_ids = json.loads(queryset_cache)
+        now_target = target_ids.pop(0)
+        
         ttl = redis_cash_1.ttl(str(message.chat.id))
-        if ttl > 0:
-            redis_cash_1.set(str(message.chat.id), json.dumps(queryset_cache), ttl)
+        redis_cash_1.set(str(message.chat.id), json.dumps(target_ids), ttl)
+        now_target = (await calculation_users(user_id=user.id, target_user_id=now_target['target_id']))[0]
+        if len(now_target) == 0:
+            return await search_dating(message)
+        target_user = await models.UserModel.get(id=now_target['target_id'])
+        user_view = await models.UserView.get_or_create(user=user, target_user=target_user)
 
-    target_user = await user_view.target_user
-    avatar = await target_user.avatar
-    if target_user.verification == False or avatar.file_type is None:
+    target_avatar = await target_user.avatar
+    if target_avatar.file_type is None or target_avatar.file_id is None:
         return await search_dating(message)
-    
+    user_view = user_view[0]
     user_view.count_view += 1
     await user_view.save()
-    text = await generate_ad_text(target_user=target_user, relation=await user_view.relation)
-    if avatar.file_type is None:
-        pass
-    elif avatar.file_type.lower() in PHOTO_TYPES:
-        await message.answer_photo(photo=avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, superlike_count=user.superlike_count)) 
-    elif avatar.file_type.lower() in VIDEO_TYPES:
-        await message.answer_video(video=avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, superlike_count=user.superlike_count))
+    text = await generate_ad_text(target_user=target_user, general_percent=now_target['general_percent'])
+    if target_avatar.file_type.lower() in PHOTO_TYPES:
+        await message.answer_photo(photo=target_avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, 
+                                                                                                               superlike_count=user.superlike_count,
+                                                                                                               general_percent=now_target['general_percent'])) 
+    elif target_avatar.file_type.lower() in VIDEO_TYPES:
+        await message.answer_video(video=target_avatar.file_id, caption=text, reply_markup=await like_keyboard(view_id=user_view.id, 
+                                                                                                               superlike_count=user.superlike_count,
+                                                                                                               general_percent=now_target['general_percent']))
     
 
 
@@ -75,17 +79,17 @@ async def search_dating(message: types.Message, last_view_id: int = None):
 async def reaction_ad_handler(call: types.CallbackQuery):
     command = call.data.split(':')[1]
     view_id = call.data.split(':')[2]
+    general_percent = int(call.data.split(':')[4])
     if call.data.split(':')[0] == 'y_like_reaction':
         offset = int(call.data.split(':')[3])
     view = await models.UserView.get(id=view_id)
     user = await view.user
     target_user = await view.target_user
-    reverse_view = await models.UserView.get(Q(user=target_user) & Q(target_user=user))
+    reverse_view = await models.UserView.get_or_none(user=target_user, target_user=user)
+    # reverse_view = reverse_view[0]
     if view.like or view.superlike:
         await call.message.delete()
         return await call.answer("Вы уже реагировали на данное объявление.")        
-    # user = await models.UserModel.get(tg_id=call.message.chat.id)
-
     if command == "like":
         text = "LIKE 👍\n\n"
         if not user.end_premium:
@@ -96,13 +100,13 @@ async def reaction_ad_handler(call: types.CallbackQuery):
             user.free_likes -= 1
             await user.save()
         view.like = True
-        if view.like and reverse_view.like:
+        if view.like and reverse_view is not None and reverse_view.like is True:
             await call.message.delete()
             await view.save()
             return await mutal_like_func(message=call.message,
                                          user=user,
                                          target_user=target_user,
-                                         relation=await view.relation,)
+                                         general_percent=general_percent)
         else:
             if target_user.end_premium is None:
                 await null_premium_message(chat_id=target_user.tg_id)
@@ -113,13 +117,13 @@ async def reaction_ad_handler(call: types.CallbackQuery):
             text = "SUPERLIKE ⭐\n\n"
             view.like = True
             view.superlike = True
-            if view.like and reverse_view.like:
+            if view.like and reverse_view is not None and reverse_view.like is True:
                 await call.message.delete()
                 await view.save()
                 return await mutal_like_func(message = call.message,
                                              user=user,
                                              target_user=target_user,
-                                             relation=await view.relation)
+                                             general_percent=general_percent)
 
             start_text_msg = f"Пользователь {user.name} отправил вам суперлайк!\n\n"
             end_text_msg = f"\n\nХотите с ним познакомиться? Пишите: @{user.tg_username}"
@@ -127,10 +131,12 @@ async def reaction_ad_handler(call: types.CallbackQuery):
                 end_text_msg = "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"
                 await null_tg_username_answer(chat_id=user.tg_id)
            
-            text_msg = start_text_msg + await generate_ad_text(target_user=target_user, relation=await view.relation) + end_text_msg
+            text_msg = start_text_msg + await generate_ad_text(target_user=target_user, general_percent=general_percent) + end_text_msg
             avatar_tar = await target_user.avatar
             avatar_user = await user.avatar
-            keyboard = await like_keyboard(view_id=reverse_view.id, superlike_count=target_user.superlike_count, callback="single_reaction")
+            if not reverse_view:
+                reverse_view = await models.UserView.create(user=target_user, target_user=user)
+            keyboard = await like_keyboard(view_id=reverse_view.id, superlike_count=target_user.superlike_count, callback="single_reaction", general_percent=general_percent)
             if avatar_user.file_type.lower() in PHOTO_TYPES:
                 try:
                     await bot.send_photo(chat_id=target_user.tg_id, photo=avatar_user.file_id, caption=text_msg, reply_markup=keyboard) 
@@ -167,14 +173,14 @@ async def reaction_ad_handler(call: types.CallbackQuery):
 
 async def mutal_like_func(message: types.Message, 
                           user: models.UserModel,
-                          target_user: models.UserModel, 
-                          relation: models.UsersRelations):
+                          target_user: models.UserModel,
+                          general_percent: int):
     avatar_user = await user.avatar
     avatar_tar = await target_user.avatar
     start_text = "У вас новая пара!\n\n"
     end_text = "\n\nПора познакомиться, пишите: "
     
-    text = start_text + await generate_ad_text(target_user=target_user, relation=await relation)
+    text = start_text + await generate_ad_text(target_user=target_user, general_percent=general_percent)
     
     if target_user.tg_username is None:
         text += "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"
@@ -186,7 +192,7 @@ async def mutal_like_func(message: types.Message,
     elif avatar_tar.file_type.lower() in VIDEO_TYPES:
         await message.answer_video(video=avatar_tar.file_id, caption=text)
 
-    text = start_text + await generate_ad_text(target_user=user, relation=await relation)
+    text = start_text + await generate_ad_text(target_user=user, general_percent=general_percent)
     if user.tg_username is None:
         text += "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"
         await null_tg_username_answer(chat_id=user.tg_id)

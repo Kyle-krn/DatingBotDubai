@@ -9,8 +9,6 @@ from keyboards.inline.user_settings_keyboards import city_answer_keyboard, dubai
 from keyboards.reply_keyboards.keyboards import geolocation_keyboard, main_keyboard
 from .profile_state import ProfileSettingsState
 from .dubai_handlers import dubai_handler 
-# from handlers.calculation_relations.recalculation_relations import recalculation_location
-from utils.calculation_relations.recalculations import recalculation_location
 from .views_self_profile_handlers import profile_handler
 
 
@@ -64,12 +62,17 @@ async def answer_city_handler(call: types.CallbackQuery, state: FSMContext):
     answer = call.data.split(':')[1]
     if answer == 'yes':
         user_data = await state.get_data()
+        city = await models.City.get_or_create(place_name=user_data['city_info'])
+        city = city[0]
+        # if city.tmz is not None:
+        if city.tmz != user_data['tmz']:
+            city.tmz = user_data['tmz']
+            await city.save()
+        
         user = await models.UserModel.get(tg_id=call.message.chat.id)
-        user.place = user_data['city_info']
-        user.lat = user_data['geolocation'][1]
-        user.long = user_data['geolocation'][0]
-        user.tmz = user_data['tmz']
-        await call.message.edit_text(text=f"Ваш город: {user.place}", reply_markup=None)
+        user.place = city
+        await user.save()
+        await call.message.edit_text(text=f"Ваш город: {user.place.place_name}", reply_markup=None)
         await user.save()
         await state.finish()
         # await call.message.delete()
@@ -77,8 +80,9 @@ async def answer_city_handler(call: types.CallbackQuery, state: FSMContext):
         await msg.delete()
         
         old_value = user.dubai
-        if not 'Dubai' in user.place:
+        if not 'Dubai' in city.place_name:
             user.dubai = False
+            # user.moving_to_dubai = False
         else:
             user.dubai = True
             user.moving_to_dubai = None
@@ -87,8 +91,8 @@ async def answer_city_handler(call: types.CallbackQuery, state: FSMContext):
             
             await call.message.answer(text='Успешно!', reply_markup=await main_keyboard())
             await user.save()
-            if old_value != user.dubai:
-                await recalculation_location(user)
+            # if old_value != user.dubai:
+            #     await recalculation_location(user)
             return await profile_handler(call.message)
         if user_data['status_user'] == 'new':
             if user.dubai is False:
@@ -107,19 +111,18 @@ async def geolocation_handler(message: types.Message, state: FSMContext):
     city_info, geolocation, tmz = await get_location_by_lat_long(lat=lat, long=lon)
     if not city_info:
         return await message.answer("К сожалению мы не смогли определить ваш город, напиши его текстом.")
-    
+    city = await models.City.get_or_create(place_name=city_info)
+    city = city[0]
+    if city.tmz != tmz:
+        city.tmz = tmz
+        await city.save()
     user = await models.UserModel.get(tg_id=message.chat.id)
-    user.place = city_info
-    user.lat = geolocation[0]
-    user.long = geolocation[1]
-    user.tmz = tmz
+    user.place = city
     await user.save()
     user_data = await state.get_data()
     await state.finish()
     msg = await message.answer("Загрузка ⏳", reply_markup=types.ReplyKeyboardRemove())
     await msg.delete()
-
-    old_value = user.dubai
     if not 'Dubai' in user.place:
         user.dubai = False
     else:
@@ -129,8 +132,6 @@ async def geolocation_handler(message: types.Message, state: FSMContext):
     
     if user_data['status_user'] == 'old':
         await message.answer(text='Успешно!', reply_markup=await main_keyboard())
-        if old_value != user.dubai:
-            await recalculation_location(user)
         return await profile_handler(message)
 
     if user_data['status_user'] == 'new':

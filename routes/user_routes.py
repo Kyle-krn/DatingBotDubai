@@ -78,14 +78,17 @@ async def test(request: Request, id: int, log: str = Depends(get_current_usernam
     """Подробнее о пользователе"""
     user = await models.UserModel.get(id=id)
     avatar = await user.avatar
+    user_place = await user.place
+    marital_status = await user.marital_status
     data = {"id": user.id,
             "tg_id": user.tg_id,
             "tg_username": user.tg_username,
             "name": user.name,
             "bday": user.birthday,
-            "place": user.place,
+            "place": user_place.place_name,
+            "dubai": user.dubai,
             "file_path": avatar.file_path,
-            "marital_status": user.marital_status,
+            "marital_status": marital_status.title_status,
             "superlike": user.superlike_count,
             "free_likes": user.free_likes,
             "verification": user.verification ,
@@ -177,6 +180,18 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
     await models.UserView.filter(Q(user=user) & Q(like=True)).update(like=False, superlike=False)
     await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).delete()
     return f"/get_user/{id}"
+
+
+@user_router.get("/del_user/{id}", response_class=RedirectResponse)
+async def verif_user(request: Request, id: int, log: str = Depends(get_current_username)):
+    """Отчистить лайки и взаимные лайки для юзера"""
+    user = await models.UserModel.get(id=id)
+    await user.delete()
+    # user.spam_ad_ids = None
+    await user.save()
+    await models.UserView.filter(Q(user=user) & Q(like=True)).delete()
+    await models.MutualLike.filter(Q(user=user) | Q(target_user=user)).delete()
+    return f"/"
 
 
 @user_router.post("/del_hobbie/{id}")

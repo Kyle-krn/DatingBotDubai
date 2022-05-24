@@ -13,17 +13,13 @@ async def marriage_handler(call: Union[types.CallbackQuery, types.Message]):
     else:
         tg_id = call.chat.id
     user = await models.UserModel.get(tg_id=tg_id)
-    martial_status = user.marital_status
-    if not user.marital_status:
-        martial_status = ''
-        
     if isinstance(call, types.CallbackQuery) and call.data.split(':')[0] == 'change_marriage':
-        keyboard = await marital_status_keyboard(user_martial_status=martial_status, callback="c_ms")
+        keyboard = await marital_status_keyboard(user_marital_status_id=user.marital_status_id, callback="c_ms")
         # await call.message.delete()
         await call.answer()
         await call.message.answer(text='Ваше семейное положение?', reply_markup=keyboard)
     else:
-        keyboard = await marital_status_keyboard(user_martial_status=martial_status)
+        keyboard = await marital_status_keyboard(user_marital_status_id=user.marital_status_id)
         hobbies = await user.hobbies.all()
         hobbies = [i.title_hobbie for i in hobbies]
         if len(hobbies) == 0:
@@ -41,12 +37,13 @@ async def marriage_handler(call: Union[types.CallbackQuery, types.Message]):
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'ms')
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'c_ms')
 async def mar_status_handler(call: types.CallbackQuery):
-    status = call.data.split(':')[1]
-    await call.answer(f"Ваше семейное положение: {status}")
+    status_id = int(call.data.split(':')[1])
+    status = await models.MaritalStatus.get(id=status_id)
+    await call.answer(f"Ваше семейное положение: {status.title_status}")
     user = await models.UserModel.get(tg_id=call.message.chat.id)
     user.marital_status = status
     await user.save()
-    await call.message.edit_text(text=f"Ваше семейное положение: {user.marital_status}")
+    await call.message.edit_text(text=f"Ваше семейное положение: {status.title_status}")
     if call.data.split(':')[0] == 'ms':
         await call.message.answer(text="У вас есть дети? Информация будет использоваться для поиска более подходящих вам знакомств.", 
                                     reply_markup=await children_keyboard())

@@ -3,8 +3,6 @@ from loader import dp
 from models import models
 from aiogram import types
 from keyboards.inline.user_settings_keyboards import purp_keyboard
-# from handlers.calculation_relations.recalculation_relations import recalculation_purp
-from utils.calculation_relations.recalculations import recalculation_purp
 from tortoise.queryset import Q
 from .views_self_profile_handlers import profile_handler
 from aiogram import exceptions
@@ -57,7 +55,6 @@ async def change_purp_handler(call: types.CallbackQuery):
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'change_purp_quit')
 async def change_purp_quit_handler(call: types.CallbackQuery):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
-    await recalculation_purp(user)
     user_purp = await user.purp_dating.all()
     user_purp = [i.title_purp for i in user_purp]
     user_purp = ", ".join(user_purp)

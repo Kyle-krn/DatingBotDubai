@@ -1,11 +1,13 @@
 from aiogram import types
 
 
-async def like_keyboard(view_id: int, superlike_count: int, callback: str = 'reaction', offset: int = 0):
+async def like_keyboard(view_id: int, superlike_count: int, general_percent: int, callback: str = 'reaction', offset: int = 0):
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text="👍", callback_data=f"{callback}:like:{view_id}:{offset}"), 
-                 types.InlineKeyboardButton(text=f"⭐({superlike_count})", callback_data=f"{callback}:superlike:{view_id}:{offset}"), 
-                 types.InlineKeyboardButton(text="👎", callback_data=f"{callback}:dislike:{view_id}:{offset}"))
+    if general_percent > 99:
+        general_percent = 99
+    keyboard.add(types.InlineKeyboardButton(text="👍", callback_data=f"{callback}:like:{view_id}:{offset}:{general_percent}"), 
+                 types.InlineKeyboardButton(text=f"⭐({superlike_count})", callback_data=f"{callback}:superlike:{view_id}:{offset}:{general_percent}"), 
+                 types.InlineKeyboardButton(text="👎", callback_data=f"{callback}:dislike:{view_id}:{offset}:{general_percent}"))
     if callback == "y_like_reaction":
         keyboard.add(types.InlineKeyboardButton(text="⬅️", callback_data=f"offset_your_likes:{offset-1}"),
                  types.InlineKeyboardButton(text="➡️", callback_data=f"offset_your_likes:{offset+1}"))    

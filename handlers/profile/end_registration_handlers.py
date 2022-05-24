@@ -22,15 +22,15 @@ async def end_registration(message: types.Message, user: models.UserModel):
     avatar = avatar[0]
     if user.male is None:
         return await message.answer(f"Укажите Ваш пол:", reply_markup=await gender_keyboard())
-    elif user.place is None:
+    elif user.place_id is None:
         return await city_set_state_handler(message)
-    # elif user.moving_to_dubai is None:
-    #     return await dubai_handler(message)
+    elif user.dubai is False and user.moving_to_dubai is None:
+        return await dubai_handler(message)
     elif len(await user.interest_place_companion.all()) == 0:
         return await settings_companion_place_hanlder(message)
     elif user.birthday is None:
         return await birthday_handler(message)
-    elif user.marital_status is None:
+    elif user.marital_status_id is None:
         return await marriage_handler(message)
     elif len(await user.purp_dating.all()) == 0:
         return await purp_handler(message, change=False)

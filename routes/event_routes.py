@@ -4,6 +4,9 @@ import asyncio
 from data.config import TORTOISE_ORM, WEBHOOK_URL
 from tasks import scheduler
 from fastapi import APIRouter
+from utils.postgres_func import init_postgres_func
+
+from utils.postgres_func.insert_data_table import init_data_db
 
 
 event_router = APIRouter()
@@ -17,6 +20,8 @@ async def on_startup():
             url=WEBHOOK_URL
         )
     await db.init(config=TORTOISE_ORM)
+    await init_data_db()
+    await init_postgres_func()
     asyncio.create_task(scheduler(bot))
 
 

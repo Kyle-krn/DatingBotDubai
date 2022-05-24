@@ -35,7 +35,8 @@
       <button type="button" class="btn btn-danger btn-lg ml-5" data-toggle="modal" data-target="#delPhotoModal">Отклонить фото</button>
       {% endif %}
       <br><br>
-      <a class="btn btn-danger btn-lg" href="/del_likes/{{user.id}}" role="button">DROP</a>
+      <a class="btn btn-danger btn-lg" href="/del_likes/{{user.id}}" role="button">Удалить лайки</a>
+      <a class="btn btn-danger btn-lg " href="/del_user/{{user.id}}" role="button">Удалить юзера</a>
       <br><br>
 
             <table class="table table-striped table-hover">
@@ -70,10 +71,12 @@
                     <td><b>Местонахождение:</b></td>
                     <td>{{user.place}}</td>
                   </tr>
-                  <tr>
-                    <td><b>Переезд в Дубаи:</b></td>
-                    <td>{{user.moving_to_dubai}}</td>
-                  </tr>
+                  {% if user.dubai is false %}
+                    <tr>
+                      <td><b>Переезд в Дубаи:</b></td>
+                      <td>{{user.moving_to_dubai}}</td>
+                    </tr>
+                  {% endif %}
                   <tr>
                     <td><b>Хобби:</b></td>
                     {% if user.hobbies != None %}

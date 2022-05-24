@@ -6,7 +6,7 @@ from aiogram.dispatcher.handler import CancelHandler, current_handler
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.utils.exceptions import Throttled
 from models import models
-
+from handlers.start import bot_start
 class ThrottlingMiddleware(BaseMiddleware):
     """
     Simple middleware
@@ -48,7 +48,8 @@ class BanMiddleware(BaseMiddleware):
         try:
             user = await models.UserModel.get(tg_id=message.chat.id)
         except Exception as e:
-            return
+            await bot_start(message)
+            raise CancelHandler()
         if user.tg_username != message.chat.username:
             user.tg_username = message.chat.username
             await user.save()

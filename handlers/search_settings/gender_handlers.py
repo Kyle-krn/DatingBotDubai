@@ -1,5 +1,3 @@
-# from handlers.calculation_relations.recalculation_relations import recalculation_by_gender
-from utils.calculation_relations.recalculations import recalculation_by_gender
 from handlers.search_settings.view_settings_handler import settings_handler
 from keyboards.inline.user_settings_keyboards import gender_keyboard
 from models import models
@@ -39,7 +37,6 @@ async def set_partner_gender_handler(call: types.CallbackQuery):
     if settings.male != male:
         settings.male = male
         await settings.save()
-        await recalculation_by_gender(user)
     await call.message.edit_text(text=f"Выбранный пол партнера: {text}")
     # await call.message.delete()
     return await settings_handler(call.message)

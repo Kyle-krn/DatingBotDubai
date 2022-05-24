@@ -1,7 +1,5 @@
 from typing import Union
 from data.config import KEYBOARD_TEXT
-# from handlers.calculation_relations.relations_handlers import check_age
-from utils.calculation_relations.check_relations import check_age
 from handlers.cancel_state_handler import redirect_handler
 from keyboards.inline.inline_keyboards import one_button_keyboard
 from loader import dp
@@ -13,8 +11,6 @@ from datetime import datetime, date
 from models import models
 from .hobbies_handlers import set_hobbies_state
 from .views_self_profile_handlers import profile_handler
-# from handlers.calculation_relations.recalculation_relations import recalculation_int
-from utils.calculation_relations.recalculations import recalculation_int
 from tortoise.queryset import Q
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'bday')
@@ -56,17 +52,18 @@ async def input_bday_handler(message: types.Message, state: FSMContext):
     try:
         bday = datetime.strptime(message.text, '%d.%m.%Y').date()
     except ValueError:
-        return await message.answer("<b>Не верный формат!</b>\n\nУкажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
+        return await message.answer("<b>Неверный формат!</b>\n\nУкажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
     today = date.today()
     age = int((today - bday).total_seconds() / 60 / 60 / 24 / 365)
     if (18 < age < 100) is False:
-        return await message.answer("Обращаем ваше внимание: использование сервиса Zodier запрещено лицам, моложе 18 лет! Возможно, вы ошиблись! Укажите свою дату рождения в формате DD.MM.YYYY, например 23.07.1996", reply_markup=keyboard)
+        if 18 < age:
+            info_text = 'Обращаем ваше внимание: использование сервиса Zodier запрещено лицам, моложе 18 лет!'
+        elif age < 100:
+            info_text = ''
+        return await message.answer(f"{info_text} Возможно, вы ошиблись! Укажите свою дату рождения в формате DD.MM.YYYY, например 23.07.1996", reply_markup=keyboard)
     
     
     user = await models.UserModel.get(tg_id=message.chat.id)
-    
-
-    old_age = int((today - user.birthday).total_seconds() / 60 / 60 / 24 / 365) if user.birthday else None
     user.birthday = bday
     await user.save()
     await state.finish()
@@ -74,7 +71,5 @@ async def input_bday_handler(message: types.Message, state: FSMContext):
     if user_data['status_user'] == 'new':
         return await set_hobbies_state(message)
     else:
-        if old_age != age:
-            await recalculation_int(user=user, check_func=check_age, attr_name='percent_age')
         return await profile_handler(message)
     

@@ -1,13 +1,8 @@
-from datetime import datetime
-from typing import Coroutine
-# from handlers.calculation_relations.relations_handlers import check_age, check_children, check_hobbies
-import utils.calculation_relations.check_relations as check
 from models import models
 from fastapi import Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from fastapi import APIRouter
 from loader import templates
-from dateutil.relativedelta import *
 import starlette.status as status
 from routes.login_routes import get_current_username
 
@@ -35,7 +30,6 @@ async def change_percent_handler(request: Request,
         await percent_children_db.save()
         percent_children_age_db.percent = percent_children_age
         await percent_children_age_db.save()
-        await reload_precent(func = check.check_children, attr_name="percent_children", relations_kwargs = {"percent_children__gt": 0})
     return RedirectResponse(f'/percent',status_code=status.HTTP_302_FOUND)
 
 @percent_router.post("/percent/age")
@@ -54,7 +48,6 @@ async def change_percent_handler(request: Request,
         percent_age_step_db.percent = percent_step
         await percent_age_step_db.save()
         # await reload_age()
-        await reload_precent(func = check.check_age, attr_name="percent_age", relations_kwargs = {"percent_age__gt": 0})
     return RedirectResponse(f'/percent',status_code=status.HTTP_302_FOUND)
 
 
@@ -67,59 +60,11 @@ async def change_percent_handler(request: Request,
     percent_db = await models.DatingPercent.get(id=id)
     if percent_db.percent != percent:
         if percent_db.id == 1:
-            await reload_percent_for_1_2_step(old_percent=percent_db.percent, new_percent=percent)
             percent_db.percent = percent
             await percent_db.save()
         elif percent_db.id == 6:
             percent_db.percent = percent
             await percent_db.save()
             # await reload_hobbies()
-            await reload_precent(func=check.check_hobbies, attr_name="percent_hobbies", relations_kwargs = {"percent_hobbies__gt": 0})
     return RedirectResponse(f'/percent',status_code=status.HTTP_302_FOUND)
-
-
-async def reload_precent(func: Coroutine, attr_name: str, relations_kwargs: dict):
-    relations = await models.UsersRelations.filter(**relations_kwargs)
-    for relation in relations:
-        user = await relation.user
-        target_user = await relation.target_user
-        if func is check.check_children:
-            new_percent = await func(user=user, target_user=target_user)
-        elif func is check.check_age:
-            year_now = datetime.now().year
-            old_user = year_now - user.birthday.year
-            new_percent = await func(old_user, user, target_user)
-        elif func is check.check_hobbies:
-            hobbies_user = await user.hobbies.all()
-            new_percent = await func(target_user=target_user,
-                                                hobbies_user=hobbies_user)
-
-        setattr(relation, attr_name, new_percent)
-        if relation.result_distance_check and relation.result_purp_check and relation.result_gender_check:
-            step1_2 = await models.DatingPercent.get(id=1)
-            general_percent = step1_2.percent + relation.percent_children + relation.percent_age + relation.percent_hobbies
-            if general_percent > 0:
-                relation.percent_compatibility = general_percent                                               
-                await models.UserView.get_or_create(user=await relation.user, target_user=await relation.target_user, relation=relation)
-                await models.UserView.get_or_create(user=await relation.target_user, target_user=await relation.user, relation=relation)
-        else:
-            relation.percent_compatibility = 0 
-        await relation.save()
-
-
-async def reload_percent_for_1_2_step(old_percent, new_percent):
-    """Перерасчет за 1 и 2ой шаг"""
-    relations = await models.UsersRelations.filter(percent_compatibility__gt=0)
-    for relation in relations:
-
-        percent = relation.percent_compatibility 
-        percent = percent - old_percent + new_percent
-        if percent > 0:
-            relation.percent_compatibility = percent
-            await models.UserView.get_or_create(user=await relation.user, target_user=await relation.target_user, relation=relation)
-            await models.UserView.get_or_create(user=await relation.target_user, target_user=await relation.user, relation=relation)
-        else:
-            relation.percent_compatibility = 0 
-        await relation.save()
-
 

@@ -1,9 +1,5 @@
 import re
 from data.config import KEYBOARD_TEXT
-# from handlers.calculation_relations.recalculation_relations import recalculation_int
-from utils.calculation_relations.recalculations import recalculation_int
-# from handlers.calculation_relations.relations_handlers import check_children
-from utils.calculation_relations.check_relations import check_children
 from handlers.cancel_state_handler import redirect_handler
 from keyboards.inline.user_settings_keyboards import settings_children_keyboard
 from loader import dp
@@ -43,9 +39,6 @@ async def set_settings_children_handler(call: types.CallbackQuery):
         settings.children_min_age = None
         settings.children_max_age = None
         await settings.save()
-        await recalculation_int(user=user,
-                            check_func=check_children,
-                            attr_name="percent_children")
     # await call.message.delete()
     return await settings_handler(call.message)
 
@@ -87,9 +80,6 @@ async def set_value_children_age_hanlder(message: types.Message, state: FSMConte
     settings.children_min_age = min
     settings.children_max_age = max
     await settings.save()
-    await recalculation_int(user=user,
-                            check_func=check_children,
-                            attr_name="percent_children")
     await state.finish()
     if message.text in KEYBOARD_TEXT:
         return await redirect_handler(message, message.text)

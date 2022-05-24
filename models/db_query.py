@@ -24,5 +24,19 @@ async def rowsql_likes(user_id: int) -> dict:
                      order by v1.dislike, 
                     		  v1.count_view, 
                               r.percent_compatibility desc'''
-    user_likes_id = await conn.execute_query_dict(sql_query)
+    user_likes_id = await conn.execute_many(sql_query)
     return user_likes_id
+
+
+
+async def calculation_users(user_id: int, 
+                            target_user_id: int = 'null', 
+                            like_catalog: bool = False,
+                            count: bool = False) -> dict:
+    conn = Tortoise.get_connection("default")
+    select = "*" if count is False else "count(t.target_id)"
+    sql = f'''select {select} from (select * from calculation_users(arg_user_id => {user_id}, 
+                                                             arg_target_user_id => {target_user_id}, 
+                                                             arg_like_catalog => {str(like_catalog).lower()})) as t;'''
+    target_users = await conn.execute_query_dict(sql)
+    return target_users

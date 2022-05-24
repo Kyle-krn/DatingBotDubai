@@ -3,15 +3,16 @@ from models import models
 from utils.zodiak import zodiac_sign
 
 
-async def generate_ad_text(target_user: models.UserModel, relation: models.UsersRelations) -> str:
+async def generate_ad_text(target_user: models.UserModel, general_percent: int) -> str:
     """Генерирует текст объявления"""
     zodiak = await zodiac_sign(target_user.birthday)
-
+    city = await target_user.place
+    marital_status = await target_user.marital_status
     year = datetime.now().year
     text = f"{target_user.name}, {year-target_user.birthday.year}\n"  \
            f"{zodiak}\n" \
-           f"🗺️ {target_user.place}\n" \
-           f"👫 {target_user.marital_status}\n"  \
+           f"🗺️ {city.place_name}\n" \
+           f"👫 {marital_status.title_status}\n"  \
            f"Дети: "
     if target_user.children is True:
         text += "Есть\n"
@@ -24,9 +25,10 @@ async def generate_ad_text(target_user: models.UserModel, relation: models.Users
     target_hobbies = await target_user.hobbies.all()
     if target_hobbies:
         text += "Увлечения: " + ", ".join([i.title_hobbie for i in target_hobbies]) + "\n"
-    percent = relation.percent_compatibility
-    if percent > 100:
-        percent = 99
-    text += f"Процент совместимости: {percent}%"
+    # percent = relation.percent_compatibility
+    if general_percent is not None:
+        if general_percent > 99:
+            general_percent = 99
+        text += f"Процент совместимости: {general_percent}%"
     return text
 

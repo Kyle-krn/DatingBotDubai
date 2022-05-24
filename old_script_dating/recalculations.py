@@ -20,7 +20,7 @@ async def clear_cache_relation(tg_id_1: int, tg_id_2: int):
     await clear_cache(r=redis_cash_2, key=tg_id_2)
     
 
-async def get_target_user_from_relation(user: models.UserModel, relation: models.UsersRelations):
+async def get_target_user_from_relation(user: models.UserModel):
     if user.id != relation.user_id:
         target_user = await relation.user
     else:

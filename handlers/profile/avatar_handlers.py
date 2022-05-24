@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Union
-from data.config import KEYBOARD_TEXT, PHOTO_TYPES, VIDEO_TYPES
+from data.config import KEYBOARD_TEXT, PHOTO_TYPES, VIDEO_TYPES, DEBUG_CHANNEL_ID
 from handlers.cancel_state_handler import redirect_handler
 from loader import dp, bot, BASE_DIR
 from models import models
@@ -10,7 +10,6 @@ from keyboards.inline.user_settings_keyboards import avatar_keyboard, back_docum
 from keyboards.reply_keyboards.keyboards import main_keyboard
 from .profile_state import ProfileSettingsState
 from handlers.group.new_reg_user_handlers import send_new_registration_in_chanel
-from utils.calculation_relations.calculations import calculation_new_user
 import os
 
 
@@ -107,12 +106,12 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         
         if file_type.lower() in PHOTO_TYPES:
             photo_bool = True
-            msg = await bot.send_photo(chat_id=390442593, photo=open(BASE_DIR + file_path, 'rb'))
+            msg = await bot.send_photo(chat_id=DEBUG_CHANNEL_ID, photo=open(BASE_DIR + file_path, 'rb'))
             file_id = msg.photo[-1].file_id
 
         elif file_type.lower() in VIDEO_TYPES:
             photo_bool = False
-            msg = await bot.send_video(chat_id=390442593, photo=open(BASE_DIR + file_path, 'rb'))
+            msg = await bot.send_video(chat_id=DEBUG_CHANNEL_ID, photo=open(BASE_DIR + file_path, 'rb'))
             file_id = message.video.file_id
     
     avatar = await models.AvatarModel.get_or_none(user=user)
@@ -141,7 +140,7 @@ async def upload_file_handler(message: types.Message, state: FSMContext):
         user.last_verification_time = datetime.utcnow()
         await user.save()
         text = "Регистрация успешно завершена! Ожидайте верификации вашего профиля от администрации."
-        await calculation_new_user(user=user)
+        # await calculation_new_user(user=user)
     await send_new_registration_in_chanel(user, old=old)
     await message.answer(text, reply_markup=await main_keyboard())
 

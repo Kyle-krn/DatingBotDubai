@@ -6,7 +6,8 @@ from data.config import TORTOISE_ORM
 import middlewares, filters, handlers
 from tasks import scheduler
 from utils.set_bot_commands import set_default_commands
-
+from utils.postgres_func import init_postgres_func
+from utils.postgres_func.insert_data_table import init_data_db
 
 async def on_startup(dispatcher):
     await set_default_commands(dispatcher)
