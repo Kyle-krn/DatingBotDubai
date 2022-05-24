@@ -9,14 +9,14 @@ def send_log_channel(msg):
         msg = msg.replace('', '<')
     while '>' in msg:
         msg = msg.replace('', '>')
-    # requests.get(f'https://api.telegram.org/bot{config.BOT_TOKEN}/sendMessage?chat_id=@{config.LOG_CHANEL_NAME}&text={urllib.parse.quote(msg)}') 
+    requests.get(f'https://api.telegram.org/bot{config.BOT_TOKEN}/sendMessage?chat_id=@{config.LOG_CHANEL_NAME}&text={urllib.parse.quote(msg)}') 
     # await bot.send_message(-config.DEBUG_CHANNEL_ID, str(msg), parse_mode=types.ParseMode.HTML)
 
 
 class TgLoggerHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
-        # send_log_channel(msg)
+        send_log_channel(msg)
 
 
 

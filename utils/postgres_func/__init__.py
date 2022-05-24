@@ -21,6 +21,7 @@ async def init_postgres_func():
     sql_get_user_func = await users_func.sql_query_get_user_func()
     sql_get_users_func = await users_func.get_users_func()
     sql_calculation_users_func = await users_func.calculation_users()
+    
     await conn.execute_script(f"""{sql_sort_array} 
                                   {sql_check_place_user}
                                   {sql_target_place_condition}

@@ -43,10 +43,13 @@ async def input_hobbies_handler(message: types.Message, state: FSMContext):
     hobbies = [i.strip().capitalize() for i in message.text.split(',')]
     user = await models.UserModel.get(tg_id=message.chat.id)
     user_data = await state.get_data()
-    print(user_data)
-    if message.text in KEYBOARD_TEXT and user_data['status_user'] == 'old':
-        await state.finish()
-        return await redirect_handler(message=message, button_text=message.text)
+    if message.text in KEYBOARD_TEXT:
+        print('here')
+        if user_data['status_user'] == 'old':
+            await state.finish()
+            return await redirect_handler(message=message, button_text=message.text)
+        else:
+            return await message.answer("Введите ваши хобби или нажмите пропустить", reply_markup=await remove_hobbie_keyboard(status_user=user_data['status_user'],hobbies_list=await user.hobbies.all()))
         # return await message.answer("Нажмите продолжить что бы завершить ввод увлечений.")
     # await state.finish()
     old_msg_id: types.Message = user_data['msg_id']
