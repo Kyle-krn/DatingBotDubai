@@ -72,7 +72,7 @@ join (select u.id, s.male, s.min_age, s.max_age, s.children, s.children_min_age,
 
 
 async def get_users_func():
-    sql = '''DROP FUNCTION get_users;
+    sql = '''
 -- Берем 1 юзера если true, множество false
 create or REPLACE FUNCTION "public".get_users(arg_user_id int, 
 											  arg_target_user_id int) RETURNS table(
