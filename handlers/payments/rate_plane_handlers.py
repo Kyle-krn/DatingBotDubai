@@ -1,10 +1,9 @@
-from aiohttp import payload_type
-from datetime import datetime, timedelta
+from datetime import datetime
 from loader import dp
 from models import models
 from aiogram import types
 from keyboards.inline.payments_keyboards import rate_keyboard
-# 381764678:TEST:36928
+from data import config
 from dateutil.relativedelta import *
 
 @dp.message_handler(commands=['rate_plane'])
@@ -46,7 +45,7 @@ async def payments_order(call: types.CallbackQuery):
     await bot.send_invoice(call.message.chat.id,
                            title='Ваша корзина',
                            description='Ваша корзина',
-                           provider_token="381764678:TEST:36928",
+                           provider_token=config.PROVIDER_TOKEN,
                            currency='rub',
                            photo_url='https://thumbs.dreamstime.com/b/happy-shop-logo-design-template-shopping-designs-stock-134743566.jpg',
                            photo_height=512,  # !=0/None or picture won't be shown

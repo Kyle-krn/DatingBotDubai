@@ -47,3 +47,4 @@ KEYBOARD_TEXT = ["👥 Найти пару", "👤 Профиль", "💑 Сим
 ADMIN_LOGIN = env.str("ADMIN_LOGIN")
 ADMIN_PSW = env.str("ADMIN_PSW")
 
+PROVIDER_TOKEN = env.str("PROVIDER_TOKEN")

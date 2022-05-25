@@ -1,18 +1,13 @@
-import re
-from site import USER_SITE
 from data.config import PHOTO_TYPES, VIDEO_TYPES
 from loader import dp, bot
 from aiogram import types
 from models import models
-from datetime import datetime, date
-from tortoise.queryset import Q
 from keyboards.inline.inline_keyboards import like_keyboard, one_button_keyboard
 from utils.text_for_ad import generate_ad_text
 from utils.zodiak import zodiac_sign
 import redis
 import json
 from handlers.view_relations.views_handlers import view_your_likes_handler
-import tortoise
 from aiogram.utils.exceptions import BotBlocked
 from models.db_query import calculation_users
 
@@ -24,13 +19,11 @@ redis_cash_1 = redis.Redis(db=1)
 async def search_dating(message: types.Message, last_view_id: int = None):
     user = await models.UserModel.get(tg_id=message.chat.id)
     avatar = await user.avatar
-    if avatar.file_id is None:
-        return await message.answer("Чтобы начать знакомиться добавьте ваше фото!", reply_markup=await one_button_keyboard(text="Добавить фото", 
-                                                                                                                               callback="change_ava:"))
+    #                                                                                                                            callback="change_ava:"))
     if user.end_registration is False:
         return await message.answer("Вы не закончили регистрацию")
-    elif user.verification is False:
-        return await message.answer("Мы проверяем ваше фото, когда проверка закончится мы Вам сообщим и вы сможете начать знакомиться!")
+    # elif user.verification is False:
+    #     return await message.answer("Мы проверяем ваше фото, когда проверка закончится мы Вам сообщим и вы сможете начать знакомиться!")
     queryset_cache = redis_cash_1.get(str(message.chat.id))
     if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
         msg = await message.answer("⌛ <b>Идет загрузка, это может занять какое то время</b>")
@@ -84,9 +77,15 @@ async def reaction_ad_handler(call: types.CallbackQuery):
         offset = int(call.data.split(':')[3])
     view = await models.UserView.get(id=view_id)
     user = await view.user
+    avatar_user = await user.avatar
+    if avatar_user.file_id is None:
+        return await call.message.answer("Чтобы начать знакомиться добавьте ваше фото!", reply_markup=await one_button_keyboard(text="Добавить фото", 
+                                                                                                                                callback="change_ava:"))
+    elif user.verification is False:
+        return await call.message.answer("Мы проверяем ваше фото, когда проверка закончится мы Вам сообщим и вы сможете начать знакомиться!")
+    
     target_user = await view.target_user
     reverse_view = await models.UserView.get_or_none(user=target_user, target_user=user)
-    # reverse_view = reverse_view[0]
     if view.like or view.superlike:
         await call.message.delete()
         return await call.answer("Вы уже реагировали на данное объявление.")        
@@ -133,7 +132,7 @@ async def reaction_ad_handler(call: types.CallbackQuery):
            
             text_msg = start_text_msg + await generate_ad_text(target_user=target_user, general_percent=general_percent) + end_text_msg
             avatar_tar = await target_user.avatar
-            avatar_user = await user.avatar
+            
             if not reverse_view:
                 reverse_view = await models.UserView.create(user=target_user, target_user=user)
             keyboard = await like_keyboard(view_id=reverse_view.id, superlike_count=target_user.superlike_count, callback="single_reaction", general_percent=general_percent)

@@ -14,7 +14,6 @@ from .views_self_profile_handlers import profile_handler
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "change_place")
 async def city_set_state_handler(call: Union[types.CallbackQuery, types.Message]):
-    # await call.message.delete()
     await ProfileSettingsState.city.set()
     state = dp.get_current().current_state()
     if isinstance(call, types.CallbackQuery):
@@ -30,8 +29,6 @@ async def city_set_state_handler(call: Union[types.CallbackQuery, types.Message]
         await call.message.answer(text="Введите ваш город", reply_markup=await geolocation_keyboard(status_user=status_user))
     else:
         await call.answer(text="Введите ваш город", reply_markup=await geolocation_keyboard(status_user=status_user))
-
-# async def city_set_state_handler_message(message: types.Message):
 
 
 @dp.message_handler(lambda message: message.text == '🛑 Отмена', state=ProfileSettingsState.city)
