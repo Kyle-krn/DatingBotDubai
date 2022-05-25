@@ -25,7 +25,6 @@ async def spam_motivation_message(bot: Bot):
         if user.spam_ad_ids is None:
             user.spam_ad_ids = []
             await user.save()
-        
         local_time_user = datetime.utcnow() + timedelta(hours=(await user.place).tmz)
         if datetime(day=local_time_user.day,            # Если у юзера день 
                     month=local_time_user.month, 
@@ -35,6 +34,7 @@ async def spam_motivation_message(bot: Bot):
                                                            year=local_time_user.year,
                                                            hour=22):
             avatar = await user.avatar
+            
             if user.end_registration is False:
                 try:
                     await bot.send_message(chat_id=user.tg_id, text="Мы заметили, что вы не закончили регистрацию! Пройдите регистрацию полностью, чтобы начать знакомиться!",
@@ -47,24 +47,28 @@ async def spam_motivation_message(bot: Bot):
                        "Без фотографии профиля ты не будешь появляться в ленте других пользователей"  \
                        ", не будешь получать лайки и ни с кем не познакомишься :("  \
                        "Пожалуйста установите фотографию профиля по кнопке добавить фото"
-                    return await bot.send_message(chat_id=user.tg_id, text=text, reply_markup=await one_button_keyboard(text="Добавить фото", callback="change_ava:"))
+                    await bot.send_message(chat_id=user.tg_id, text=text, reply_markup=await one_button_keyboard(text="Добавить фото", callback="change_ava:"))
+                    continue
             elif user.verification is True:
                 # your_likes_view = await rowsql_likes(user_id=user.id)
+            
                 users_like_you = await calculation_users(user_id=user.id, like_catalog=True)
+                
                 likes_view = None
                 user_view = None
                 if len(users_like_you) > 0:
-                    # users_id_like_you = [i['target_id'] for i in users_like_you]
                     while len(users_like_you) > 0:
                         '''Ищем просмотры где лайкнули юзера'''
-                        target_user_row= users_like_you.pop(0)
+                        target_user_row = users_like_you.pop(0)
                         if target_user_row['target_id'] not in user.spam_ad_ids:
                             target_user = await models.UserModel.get(id=target_user_row['target_id'])
                             likes_view = await models.UserView.get_or_create(user=user, target_user=target_user)
                             likes_view = likes_view[0]
-                            user.spam_ad_ids.append(likes_view.id)
+                            user.spam_ad_ids.append(target_user_row['target_id'])
                             await user.save()
-                            return await send_motivation(user=user, user_view=likes_view, likes=True, general_percent=target_user_row['general_percent'], bot=bot)
+                            await send_motivation(user=user, user_view=likes_view, likes=True, general_percent=target_user_row['general_percent'], bot=bot)
+                            break
+                    continue
                             # break
                 # query = Q(relation__percent_compatibility__gt=0) & Q(target_user__verification=True) & Q(target_user__ban=False) & Q(like=False) & Q(superlike=False)
                 # user_views_list = await user.user_view.filter(query).order_by('dislike', 'count_view', '-relation__percent_compatibility')
@@ -79,8 +83,9 @@ async def spam_motivation_message(bot: Bot):
                             user_view = user_view[0]
                             user.spam_ad_ids.append(target_user_row['target_id'])
                             await user.save()
-                            return await send_motivation(user=user, user_view=user_view, likes=False, general_percent=target_user_row['general_percent'], bot=bot)
-                            
+                            await send_motivation(user=user, user_view=user_view, likes=False, general_percent=target_user_row['general_percent'], bot=bot)
+                            break
+                    continue
                         
 
 

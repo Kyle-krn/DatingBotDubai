@@ -55,6 +55,7 @@ async def input_bday_handler(message: types.Message, state: FSMContext):
         return await message.answer("<b>Неверный формат!</b>\n\nУкажи свою дату рождения в формате DD.MM.YYYY, например 23.05.1996", reply_markup=keyboard)
     today = date.today()
     age = int((today - bday).total_seconds() / 60 / 60 / 24 / 365)
+    print(age)
     if (18 < age < 100) is False:
         if 18 < age:
             info_text = 'Обращаем ваше внимание: использование сервиса Zodier запрещено лицам, моложе 18 лет!'
