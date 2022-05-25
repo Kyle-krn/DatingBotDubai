@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from models import models
 from tortoise.queryset import Q
-from fastapi import Depends, Form, Request
+from fastapi import Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import APIRouter
 from loader import templates, bot
@@ -76,7 +76,9 @@ async def list_user(request: Request,
 @user_router.get("/get_user/{id}", response_class=HTMLResponse)
 async def test(request: Request, id: int, log: str = Depends(get_current_username)):
     """Подробнее о пользователе"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     avatar = await user.avatar
     user_place = await user.place
     marital_status = await user.marital_status
@@ -140,7 +142,9 @@ async def test(request: Request, id: int, log: str = Depends(get_current_usernam
 @user_router.get("/ban_user/{id}", response_class=RedirectResponse)
 async def ban_user_handler(request: Request, id: int, log: str = Depends(get_current_username)):
     """Бан/Разбан юзера"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     user.ban = not user.ban
     await user.save()
     if user.ban:
@@ -157,7 +161,9 @@ async def ban_user_handler(request: Request, id: int, log: str = Depends(get_cur
 @user_router.get("/verif_user/{id}", response_class=RedirectResponse)
 async def verif_user(request: Request, id: int, log: str = Depends(get_current_username)):
     """Забрать/Дать верификацию юзеру"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     user.verification = not user.verification
     await user.save()
     if user.verification:
@@ -174,7 +180,9 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
 @user_router.get("/del_likes/{id}", response_class=RedirectResponse)
 async def verif_user(request: Request, id: int, log: str = Depends(get_current_username)):
     """Отчистить лайки и взаимные лайки для юзера"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     user.spam_ad_ids = None
     await user.save()
     await models.UserView.filter(Q(user=user) & Q(like=True)).update(like=False, superlike=False)
@@ -185,7 +193,9 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
 @user_router.get("/del_user/{id}", response_class=RedirectResponse)
 async def verif_user(request: Request, id: int, log: str = Depends(get_current_username)):
     """Отчистить лайки и взаимные лайки для юзера"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     await user.delete()
     # user.spam_ad_ids = None
     await user.save()
@@ -197,7 +207,9 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
 @user_router.post("/del_hobbie/{id}")
 async def del_hobbie_handler(request: Request, id: int, hobbies: list = Form(...), log: str = Depends(get_current_username)):
     """Удаляем хобби"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     for hobbie in hobbies:
         await user.hobbies.remove(await models.Hobbies.get(id=hobbie))
     return RedirectResponse(
@@ -211,7 +223,9 @@ async def append_superlikes(request: Request,
                             superlike_count: int = Form(...), 
                             log: str = Depends(get_current_username)):
     """Накидываем суперлайки"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     user.superlike_count += superlike_count
     await user.save()
     return RedirectResponse(
@@ -224,7 +238,9 @@ async def append_superlikes(request: Request,
                             id: int, mounth_count: int = Form(...), 
                             log: str = Depends(get_current_username)):
     """Накидываем админку"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     end_premium_date = datetime.utcnow() + relativedelta(months=+mounth_count)
     if user.end_premium is None:
         user.end_premium = end_premium_date
@@ -244,7 +260,9 @@ async def del_hobbie_handler(request: Request,
                              msg: Optional[str] = Form(None), 
                              log: str = Depends(get_current_username)):
     """Удаляем аватар"""
-    user = await models.UserModel.get(id=id)
+    user = await models.UserModel.get_or_none(id=id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     user.verification = False
     await user.save()
     avatar = await user.avatar
