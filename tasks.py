@@ -7,7 +7,6 @@ from models import models
 from aiogram import Bot
 from tortoise.queryset import Q
 from models.db_query import calculation_users
-# from models.db_query import rowsql_likes
 from utils.text_for_ad import generate_ad_text
 from aiogram.utils.exceptions import BotBlocked
 
@@ -86,17 +85,6 @@ async def spam_motivation_message(bot: Bot):
                             await send_motivation(user=user, user_view=user_view, likes=False, general_percent=target_user_row['general_percent'], bot=bot)
                             break
                     continue
-                        
-
-
-                # if likes_view is not None:
-                #     user_view = likes_view
-                #     text = "<b>Тебя лайкнули! Если тебе нравится этот профиль, поставь лайк в ответ и получи контакт для общения!</b>\n\n"
-                # elif user_view is not None:
-                #     text = "<b>Тебе нравится этот профиль? Что если это взаимно? Поставь лайк и возможно это принесет тебе новое знакомство!</b>\n\n"
-                # else:
-                #     continue
-
                 
 
 async def send_motivation(user: models.UserModel, 
@@ -130,7 +118,7 @@ async def send_motivation(user: models.UserModel,
 
 async def scheduler(bot):
     aioschedule.every(1).hours.do(spam_motivation_message, bot)
-    # aioschedule.every().day.at("12:00").do(update_likes)
+    aioschedule.every().day.at("12:00").do(update_likes)
     while True:
         await aioschedule.run_pending() 
         await asyncio.sleep(1)
