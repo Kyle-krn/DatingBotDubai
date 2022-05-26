@@ -64,13 +64,14 @@ async def view_relations_handler(message: Union[types.CallbackQuery, types.Messa
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "your_likes")
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == "offset_your_likes")
-async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int = None):
+async def view_your_likes_handler(call: types.CallbackQuery, last_user_id: int = None):
     user = await models.UserModel.get(tg_id=call.message.chat.id)
     if user.end_premium is None:
         return await call.message.answer("У вас нет активного Gold статуса.", 
                                          reply_markup=await one_button_keyboard(text="Купить Gold статус", 
                                                                                 callback="buy:gold:1"))
     users_like_you = await calculation_users(user_id=user.id, like_catalog=True)
+    users_like_you = [i for i in users_like_you if i['target_id'] != last_user_id]
     if len(users_like_you) == 0:
         return
     count_your_likes = len(users_like_you)
@@ -89,7 +90,7 @@ async def view_your_likes_handler(call: types.CallbackQuery, last_view_id: int =
     if target_user.verification == False or avatar.file_id is None:
         offset += 1
         call.data = f"your_likes:{offset}"
-        return await view_your_likes_handler(call)
+        return await view_your_likes_handler(call, last_user_id=target_user.id)
 
     text = await generate_ad_text(target_user=target_user, general_percent=target_user_row['general_percent'])
 

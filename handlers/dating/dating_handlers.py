@@ -161,7 +161,7 @@ async def reaction_ad_handler(call: types.CallbackQuery):
                 return await search_dating(call.message, last_user_id=target_user.id)
             else:
                 call.data = f"your_likes:{offset+1}"
-                return await view_your_likes_handler(call, last_view_id=int(view_id))
+                return await view_your_likes_handler(call, last_user_id=target_user.id)
         else:
             return await call.message.answer(f"{target_user.name} получил ваш контакт!")
         
