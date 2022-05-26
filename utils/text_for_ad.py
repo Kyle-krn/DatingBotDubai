@@ -8,8 +8,9 @@ async def generate_ad_text(target_user: models.UserModel, general_percent: int) 
     zodiak = await zodiac_sign(target_user.birthday)
     city = await target_user.place
     marital_status = await target_user.marital_status
-    year = datetime.now().year
-    text = f"{target_user.name}, {year-target_user.birthday.year}\n"  \
+    # year = datetime.now().year
+    age = (datetime.utcnow().date() - target_user.birthday).days / 365
+    text = f"{target_user.name}, {int(age)}\n"  \
            f"{zodiak}\n" \
            f"🗺️ {city.place_name}\n" \
            f"👫 {marital_status.title_status}\n"  \
