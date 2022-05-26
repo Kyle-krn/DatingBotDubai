@@ -4,30 +4,28 @@ from aiogram import types
 from models import models
 from keyboards.inline.inline_keyboards import like_keyboard, one_button_keyboard
 from utils.text_for_ad import generate_ad_text
-from utils.zodiak import zodiac_sign
 import redis
 import json
 from handlers.view_relations.views_handlers import view_your_likes_handler
 from aiogram.utils.exceptions import BotBlocked
 from models.db_query import calculation_users
 
+
 redis_cash_1 = redis.Redis(db=1)
 
 
 @dp.message_handler(commands=['dating'])
 @dp.message_handler(regexp="^(👥 Найти пару)$")
-async def search_dating(message: types.Message, last_view_id: int = None):
+async def search_dating(message: types.Message, last_user_id: int = None):
     user = await models.UserModel.get(tg_id=message.chat.id)
-    avatar = await user.avatar
-    #                                                                                                                            callback="change_ava:"))
     if user.end_registration is False:
         return await message.answer("Вы не закончили регистрацию")
-    # elif user.verification is False:
-    #     return await message.answer("Мы проверяем ваше фото, когда проверка закончится мы Вам сообщим и вы сможете начать знакомиться!")
+
     queryset_cache = redis_cash_1.get(str(message.chat.id))
     if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
         msg = await message.answer("⌛ <b>Идет загрузка, это может занять какое то время</b>")
         target_ids = await calculation_users(user_id=user.id)
+        target_ids = [i for i in target_ids if i['target_id'] != last_user_id]
         await msg.delete()
         if len(target_ids) == 0:
             return await message.answer("К сожалению подходящих пар не найдено.")
@@ -50,7 +48,7 @@ async def search_dating(message: types.Message, last_view_id: int = None):
 
     target_avatar = await target_user.avatar
     if target_avatar.file_type is None or target_avatar.file_id is None:
-        return await search_dating(message)
+        return await search_dating(message, last_user_id=target_user.id)
     user_view = user_view[0]
     user_view.count_view += 1
     await user_view.save()
@@ -160,7 +158,7 @@ async def reaction_ad_handler(call: types.CallbackQuery):
     if call.data.split(':')[0] != 'single_reaction':
         if view.superlike is False:
             if call.data.split(':')[0] == 'reaction':
-                return await search_dating(call.message, last_view_id=view_id)
+                return await search_dating(call.message, last_user_id=target_user.id)
             else:
                 call.data = f"your_likes:{offset+1}"
                 return await view_your_likes_handler(call, last_view_id=int(view_id))
