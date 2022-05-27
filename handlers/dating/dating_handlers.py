@@ -40,9 +40,10 @@ async def search_dating(message: types.Message, last_user_id: int = None):
         
         ttl = redis_cash_1.ttl(str(message.chat.id))
         redis_cash_1.set(str(message.chat.id), json.dumps(target_ids), ttl)
-        now_target = (await calculation_users(user_id=user.id, target_user_id=now_target['target_id']))[0]
+        now_target = await calculation_users(user_id=user.id, target_user_id=now_target['target_id'])
         if len(now_target) == 0:
             return await search_dating(message)
+        now_target = now_target[0]
         target_user = await models.UserModel.get(id=now_target['target_id'])
         user_view = await models.UserView.get_or_create(user=user, target_user=target_user)
 
