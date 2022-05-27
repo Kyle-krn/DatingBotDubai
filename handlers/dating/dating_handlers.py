@@ -157,15 +157,16 @@ async def reaction_ad_handler(call: types.CallbackQuery):
     caption = text+caption
     await call.message.edit_caption(caption=caption)
     if call.data.split(':')[0] != 'single_reaction':
-        if view.superlike is False:
-            if call.data.split(':')[0] == 'reaction':
-                return await search_dating(call.message, last_user_id=target_user.id)
-            else:
-                call.data = f"your_likes:{offset+1}"
-                return await view_your_likes_handler(call, last_user_id=target_user.id)
+        if view.superlike is True:
+            await call.message.answer(f"{target_user.name} получил ваш контакт!")
+        if call.data.split(':')[0] == 'reaction':
+            return await search_dating(call.message, last_user_id=target_user.id)
         else:
-            return await call.message.answer(f"{target_user.name} получил ваш контакт!")
-        
+            call.data = f"your_likes:{offset+1}"
+            return await view_your_likes_handler(call, last_user_id=target_user.id)
+        # else:
+            # return await call.message.answer(f"{target_user.name} получил ваш контакт!")
+            
 
 
 
