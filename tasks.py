@@ -117,7 +117,7 @@ async def send_motivation(user: models.UserModel,
                         pass
 
 async def scheduler(bot):
-    aioschedule.every(1).hours.do(spam_motivation_message, bot)
+    aioschedule.every(7).hours.do(spam_motivation_message, bot)
     aioschedule.every().day.at("12:00").do(update_likes)
     while True:
         await aioschedule.run_pending() 
