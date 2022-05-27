@@ -167,6 +167,8 @@ async def verif_user(request: Request, id: int, log: str = Depends(get_current_u
     user.verification = not user.verification
     await user.save()
     if user.verification:
+        user.end_registration = True
+        await user.save()
         text="Ваш аккаунт верифицирован."
     else:
         text="Ваш аккаунт перестал был верифицированым."

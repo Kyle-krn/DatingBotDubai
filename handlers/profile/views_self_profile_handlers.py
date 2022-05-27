@@ -13,7 +13,9 @@ from utils.zodiak import zodiac_sign
 # @dp.call(regexp="^(👤 Профиль)$")
 async def profile_handler(message: types.Message):
     user = await models.UserModel.get(tg_id=message.chat.id)
-    if user.end_registration is False:
+    # if user.end_registration is False:
+    if user.male is None or user.place is None or user.birthday is None or user.marital_status is None:
+        # return await message.answer("Вы не закончили регистрацию")
         return await message.answer("Вы не закончили регистрацию")
     
     avatar = await user.avatar
