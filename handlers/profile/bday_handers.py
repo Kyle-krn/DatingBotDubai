@@ -58,7 +58,7 @@ async def input_bday_handler(message: types.Message, state: FSMContext):
     print(age)
     if (18 < age < 100) is False:
         if 18 < age:
-            info_text = 'Обращаем ваше внимание: использование сервиса Zodier запрещено лицам, моложе 18 лет!'
+            info_text = 'Обращаем ваше внимание: использование сервиса запрещено лицам, моложе 18 лет!'
         elif age < 100:
             info_text = ''
         return await message.answer(f"{info_text} Возможно, вы ошиблись! Укажите свою дату рождения в формате DD.MM.YYYY, например 23.07.1996", reply_markup=keyboard)
