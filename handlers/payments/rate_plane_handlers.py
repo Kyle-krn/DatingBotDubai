@@ -88,7 +88,7 @@ async def process_successful_payment(message: types.Message):
         user.superlike_count += count_likes
         count_mount = None
     await user.save()
-    await models.UserSuccesPayments.create(user=user, 
+    await models.UserSuccessPayments.create(user=user, 
                                            amount=total_amount/100, 
                                            product=payload.split(':')[0],
                                            count_mount=count_mount,
