@@ -18,9 +18,8 @@ redis_cash_1 = redis.Redis(db=1)
 @dp.message_handler(regexp="^(👥 Найти пару)$")
 async def search_dating(message: types.Message, last_user_id: int = None):
     user = await models.UserModel.get(tg_id=message.chat.id)
-    if user.end_registration is False:
+    if user.male is None or user.place is None or user.birthday is None or user.marital_status is None:
         return await message.answer("Вы не закончили регистрацию")
-
     queryset_cache = redis_cash_1.get(str(message.chat.id))
     if queryset_cache is None or len(json.loads(queryset_cache)) == 0:
         msg = await message.answer("⌛ <b>Идет загрузка, это может занять какое то время</b>")
@@ -164,8 +163,6 @@ async def reaction_ad_handler(call: types.CallbackQuery):
         else:
             call.data = f"your_likes:{offset+1}"
             return await view_your_likes_handler(call, last_user_id=target_user.id)
-        # else:
-            # return await call.message.answer(f"{target_user.name} получил ваш контакт!")
             
 
 

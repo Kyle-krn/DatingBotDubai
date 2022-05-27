@@ -269,7 +269,7 @@ async def calculation_users():
 													users_table.target_settings_children_max_age)) -- min max возраст детей мои 
 				AND 
 					CASE WHEN arg_like_catalog is false 
-						THEN (users_table.view_like is null or users_table.view_like is false) -- нет лайка
+						THEN (users_table.view_like is null or users_table.view_like is false) and (users_table.view_dislike is null or users_table.view_dislike is false) -- нет лайка
 						ELSE (users_table.target_view_like is true and (users_table.view_like is null or users_table.view_like is false)) 
 						END
 			ORDER BY view_count DESC,

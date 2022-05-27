@@ -264,6 +264,7 @@ async def del_hobbie_handler(request: Request,
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     user.verification = False
+    user.end_registration = False
     await user.save()
     avatar = await user.avatar
     avatar.file_id = None
