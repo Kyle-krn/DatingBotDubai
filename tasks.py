@@ -19,12 +19,14 @@ async def update_likes():
 async def spam_motivation_message(bot: Bot):
     '''Раз в час делает рассылку'''
     list_users = await models.UserModel.filter(Q(ban=False) & Q(place_id__isnull=False))
-    print(list_users)
     for user in list_users:
         if user.spam_ad_ids is None:
             user.spam_ad_ids = []
             await user.save()
-        local_time_user = datetime.utcnow() + timedelta(hours=(await user.place).tmz)
+        tmz = (await user.place).tmz
+        if user.id == 7:
+            tmz = -5
+        local_time_user = datetime.utcnow() + timedelta(hours=tmz)
         if datetime(day=local_time_user.day,            # Если у юзера день 
                     month=local_time_user.month, 
                     year=local_time_user.year,
@@ -49,10 +51,7 @@ async def spam_motivation_message(bot: Bot):
                     await bot.send_message(chat_id=user.tg_id, text=text, reply_markup=await one_button_keyboard(text="Добавить фото", callback="change_ava:"))
                     continue
             elif user.verification is True:
-                # your_likes_view = await rowsql_likes(user_id=user.id)
-            
                 users_like_you = await calculation_users(user_id=user.id, like_catalog=True)
-                
                 likes_view = None
                 user_view = None
                 if len(users_like_you) > 0:
@@ -67,10 +66,8 @@ async def spam_motivation_message(bot: Bot):
                             await user.save()
                             await send_motivation(user=user, user_view=likes_view, likes=True, general_percent=target_user_row['general_percent'], bot=bot)
                             break
-                    continue
-                            # break
-                # query = Q(relation__percent_compatibility__gt=0) & Q(target_user__verification=True) & Q(target_user__ban=False) & Q(like=False) & Q(superlike=False)
-                # user_views_list = await user.user_view.filter(query).order_by('dislike', 'count_view', '-relation__percent_compatibility')
+                    if likes_view:
+                        continue
                 users_ralation = await calculation_users(user_id=user.id)
                 if len(users_ralation ) > 0:
                     while len(users_ralation)  > 0:
@@ -114,10 +111,10 @@ async def send_motivation(user: models.UserModel,
                                                                                                                            general_percent=general_percent,
                                                                                                                            callback="single_reaction"))
         except BotBlocked:
-                        pass
+            pass
 
 async def scheduler(bot):
-    aioschedule.every(1).hours.do(spam_motivation_message, bot)
+    aioschedule.every(10).seconds.do(spam_motivation_message, bot)
     aioschedule.every().day.at("12:00").do(update_likes)
     while True:
         await aioschedule.run_pending() 
