@@ -24,8 +24,8 @@ async def spam_motivation_message(bot: Bot):
             user.spam_ad_ids = []
             await user.save()
         tmz = (await user.place).tmz
-        if user.id == 7:
-            tmz = -5
+        # if user.id == 7:
+        #     tmz = -5
         local_time_user = datetime.utcnow() + timedelta(hours=tmz)
         if datetime(day=local_time_user.day,            # Если у юзера день 
                     month=local_time_user.month, 
