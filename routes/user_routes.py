@@ -34,6 +34,7 @@ async def list_user(request: Request,
     params = request.query_params._dict
     if 'page' in params:
         del params['page']
+        
     limit = 30
     offset = (page - 1) * limit
     count_users = await users.count()

@@ -41,23 +41,55 @@ async def payments_order(call: types.CallbackQuery):
         count_likes = int(call.data.split(':')[2])
         prices = [types.LabeledPrice(label=f"{count_likes} суперлайков", amount=1000*count_likes)]
         payload = f"likes:{count_likes}"
+
+
+    user = await models.UserModel.get(tg_id=call.message.chat.id)
+    end_premium_date = datetime.utcnow() + relativedelta(months=+1)
+    if user.end_premium is None:
+        user.end_premium = end_premium_date
+    else:
+        user.end_premium = user.end_premium + relativedelta(months=+1)
+    if payload.split(":")[0] == 'gold':
+        count_mount = int(payload.split(':')[1])
+        text = f"Благодарим вас за покупку, вы куппили {count_mount} месяц Gold!"
+        count_likes = None
+    elif payload.split(":")[0] == 'likes':
+        count_likes = int(payload.split(':')[1])
+        text = f"Благодарим вас за покупку, вы куппили {count_likes} суперлайков!"
+        user.superlike_count += count_likes
+        count_mount = None
+    await user.save()
+    # await models.UserSuccessPayments.create(user=user, 
+    #                                        amount=total_amount/100, 
+    #                                        product=payload.split(':')[0],
+    #                                        count_mount=count_mount,
+    #                                        count_likes=count_likes)
+
+    await bot.delete_message(call.message.chat.id, call.message.message_id-1)
+    await bot.send_message(
+        call.message.chat.id,
+        text,
+        )
     
-    await bot.send_invoice(call.message.chat.id,
-                           title='Ваша корзина',
-                           description='Ваша корзина',
-                           provider_token=config.PROVIDER_TOKEN,
-                           currency='rub',
-                           photo_url='https://thumbs.dreamstime.com/b/happy-shop-logo-design-template-shopping-designs-stock-134743566.jpg',
-                           photo_height=512,  # !=0/None or picture won't be shown
-                           photo_width=512,
-                           photo_size=512, 
-                           is_flexible=False,  # True If you need to set up Shipping Fee
-                           prices=prices,
-                           start_parameter='example',
-                           need_name=False,
-                           need_shipping_address=False,
-                           need_phone_number=False,
-                           payload=payload)
+    # await bot.send_invoice(call.message.chat.id,
+    #                        title='Ваша корзина',
+    #                        description='Ваша корзина',
+    #                        provider_token=config.PROVIDER_TOKEN,
+    #                        currency='rub',
+    #                        photo_url='https://thumbs.dreamstime.com/b/happy-shop-logo-design-template-shopping-designs-stock-134743566.jpg',
+    #                        photo_height=512,  # !=0/None or picture won't be shown
+    #                        photo_width=512,
+    #                        photo_size=512, 
+    #                        is_flexible=False,  # True If you need to set up Shipping Fee
+    #                        prices=prices,
+    #                        start_parameter='example',
+    #                        need_name=False,
+    #                        need_shipping_address=False,
+    #                        need_phone_number=False,
+    #                        payload=payload)
+
+
+
 
 
 @dp.pre_checkout_query_handler(lambda query: True)
@@ -99,4 +131,3 @@ async def process_successful_payment(message: types.Message):
         message.chat.id,
         text,
         )
-# from dateutil.relativedelta import *
