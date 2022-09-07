@@ -27,11 +27,15 @@ async def rate_plane_handler(message: types.Message):
 from loader import dp, bot
 from aiogram import types
 from tortoise.queryset import Q
-
+from aiogram.utils.exceptions import MessageToDeleteNotFound
 
 @dp.callback_query_handler(lambda call: call.data.split(':')[0] == 'buy')
 async def payments_order(call: types.CallbackQuery):
-    await call.message.delete()
+    # await null_premium_message(call.message.chat.id)
+    try:
+        await call.message.delete()
+    except MessageToDeleteNotFound:
+        pass 
     product = call.data.split(':')[1]
     if product == 'gold':
         count_mount = int(call.data.split(':')[2])
@@ -51,13 +55,14 @@ async def payments_order(call: types.CallbackQuery):
         user.end_premium = user.end_premium + relativedelta(months=+1)
     if payload.split(":")[0] == 'gold':
         count_mount = int(payload.split(':')[1])
-        text = f"Благодарим вас за покупку, вы куппили {count_mount} месяц Gold!"
+        text = f"Благодарим вас за покупку, вы купили {count_mount} месяц Gold!"
         count_likes = None
     elif payload.split(":")[0] == 'likes':
-        count_likes = int(payload.split(':')[1])
-        text = f"Благодарим вас за покупку, вы куппили {count_likes} суперлайков!"
-        user.superlike_count += count_likes
-        count_mount = None
+        # count_likes = int(payload.split(':')[1])
+        # text = f"Благодарим вас за покупку, вы куппили {count_likes} суперлайков!"
+        text = "Функция на данный момент в разработке. Мы сообщим, когда она будет готова"
+        # user.superlike_count += count_likes
+        # count_mount = None
     await user.save()
     # await models.UserSuccessPayments.create(user=user, 
     #                                        amount=total_amount/100, 
