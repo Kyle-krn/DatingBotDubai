@@ -128,8 +128,8 @@ async def reaction_ad_handler(call: types.CallbackQuery):
                 end_text_msg = "\n\nИзвините аккаунт пользователя скрыт, возможно он напишет вам сам"
                 await null_tg_username_answer(chat_id=user.tg_id)
            
-            text_msg = start_text_msg + await generate_ad_text(target_user=target_user, general_percent=general_percent) + end_text_msg
-            avatar_tar = await target_user.avatar
+            text_msg = start_text_msg + await generate_ad_text(target_user=user, general_percent=general_percent) + end_text_msg
+            avatar_tar = await user.avatar
             
             if not reverse_view:
                 reverse_view = await models.UserView.create(user=target_user, target_user=user)
